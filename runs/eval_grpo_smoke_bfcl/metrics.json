@@ -1,0 +1,76 @@
+{
+  "n_cases": 220,
+  "n_tool_cases": 180,
+  "n_no_tool_cases": 40,
+  "tool_selection_accuracy": 0.3611111111111111,
+  "argument_exact_match": 0.2388888888888889,
+  "argument_key_accuracy": 0.38194444444444436,
+  "valid_tool_call_format_rate": 1.0,
+  "canonical_format_rate": 1.0,
+  "no_tool_accuracy": 0.9,
+  "tool_abstention_accuracy": 0.9,
+  "clean_stop_rate": 1.0,
+  "strict_protocol_success": 0.35909090909090907,
+  "strict_protocol_success_tool": 0.2388888888888889,
+  "strict_protocol_success_no_tool": 0.9,
+  "overall_exact_match": 0.35909090909090907,
+  "invalid_json_rate": 0.0,
+  "wrong_tool_rate": 0.6388888888888888,
+  "missing_argument_rate": 0.7333333333333333,
+  "extra_argument_rate": 0.0,
+  "by_category": {
+    "single_tool": {
+      "n": 60,
+      "overall": 20,
+      "strict": 20,
+      "n_tool": 60,
+      "n_parallel_calls": 0,
+      "accuracy": 0.3333333333333333,
+      "strict_protocol_rate": 0.3333333333333333
+    },
+    "multiple_tools": {
+      "n": 40,
+      "overall": 9,
+      "strict": 9,
+      "n_tool": 40,
+      "n_parallel_calls": 0,
+      "accuracy": 0.225,
+      "strict_protocol_rate": 0.225
+    },
+    "parallel_same_tool": {
+      "n": 50,
+      "overall": 12,
+      "strict": 12,
+      "n_tool": 50,
+      "n_parallel_calls": 50,
+      "accuracy": 0.24,
+      "strict_protocol_rate": 0.24
+    },
+    "parallel_diff_tool": {
+      "n": 30,
+      "overall": 2,
+      "strict": 2,
+      "n_tool": 30,
+      "n_parallel_calls": 30,
+      "accuracy": 0.06666666666666667,
+      "strict_protocol_rate": 0.06666666666666667
+    },
+    "no_tool": {
+      "n": 40,
+      "overall": 36,
+      "strict": 36,
+      "n_tool": 0,
+      "n_parallel_calls": 0,
+      "accuracy": 0.9,
+      "strict_protocol_rate": 0.9
+    }
+  },
+  "model_label": "GRPO-smoke",
+  "cases_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/eval/bfcl_subset.jsonl",
+  "adapter_path": "runs/grpo-smoke/final_adapter",
+  "loss_mode": "",
+  "special_token_training": "",
+  "max_new_tokens": 1024,
+  "do_sample": false,
+  "eval_duration_sec": 363.9
+}

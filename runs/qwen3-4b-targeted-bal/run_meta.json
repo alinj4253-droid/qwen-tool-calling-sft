@@ -1,0 +1,158 @@
+{
+  "run_name": "qwen3-4b-targeted-bal",
+  "git_head": "4c5d0ec9bbd172085f39670efc2ce48cd339fd19",
+  "config": {
+    "run_name": "qwen3-4b-targeted-bal",
+    "model_path": "Qwen/Qwen3-4B-Base",
+    "base_adapter_path": "runs/qwen3-4b-sft-v2-30k-r32/final_adapter",
+    "data_dir": "data/targeted_bal",
+    "load_in_4bit": false,
+    "bf16": true,
+    "max_seq_length": 2048,
+    "loss_mode": "assistant_only",
+    "special_token_training": "none",
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 16,
+    "max_steps": -1,
+    "num_train_epochs": 1,
+    "learning_rate": 2e-05,
+    "lr_scheduler_type": "cosine",
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.0,
+    "gradient_checkpointing": true,
+    "packing": false,
+    "logging_steps": 10,
+    "save_steps": 200,
+    "save_total_limit": 1,
+    "do_eval": false,
+    "seed": 42,
+    "dataloader_num_workers": 2,
+    "optim": "adamw_8bit"
+  },
+  "model_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/models_local/Qwen/Qwen3-4B-Base",
+  "loss_mode": "assistant_only",
+  "special_token_training": "none",
+  "trainable_token_indices": [
+    151644,
+    151645,
+    151657,
+    151658,
+    151665,
+    151666
+  ],
+  "torch": "2.14.0+cu130",
+  "transformers": "4.57.6",
+  "cuda": "13.0",
+  "world_size": 1,
+  "gpu_names": [
+    "NVIDIA GeForce RTX 4090"
+  ],
+  "train_samples": 3946,
+  "train_token_stats": {
+    "examples": 3946,
+    "invalid": 0,
+    "too_long": 54,
+    "total_tokens": 2507816,
+    "loss_tokens": 1101408
+  },
+  "eval_samples": 0,
+  "eval_token_stats": {},
+  "global_steps": 247,
+  "duration_sec": 1692.1,
+  "peak_mem_per_rank": {
+    "rank0_allocated_gb": 10.324,
+    "rank0_reserved_gb": 10.744
+  },
+  "trainable_params": 33030144,
+  "all_params": 4055498240,
+  "trainable_pct": 0.8145,
+  "adapter_bytes": 148083090,
+  "adapter_size_mb": 148.1,
+  "final_log_history": [
+    {
+      "loss": 0.4815,
+      "grad_norm": 0.13576453924179077,
+      "learning_rate": 6.204196288461037e-06,
+      "epoch": 0.6487582361885453,
+      "step": 160
+    },
+    {
+      "loss": 0.4723,
+      "grad_norm": 0.197295680642128,
+      "learning_rate": 5.000000000000003e-06,
+      "epoch": 0.6893056259503294,
+      "step": 170
+    },
+    {
+      "loss": 0.5104,
+      "grad_norm": 0.15264329314231873,
+      "learning_rate": 3.885791919079878e-06,
+      "epoch": 0.7298530157121136,
+      "step": 180
+    },
+    {
+      "loss": 0.4665,
+      "grad_norm": 0.1727730631828308,
+      "learning_rate": 2.8816251633065963e-06,
+      "epoch": 0.7704004054738977,
+      "step": 190
+    },
+    {
+      "loss": 0.4689,
+      "grad_norm": 0.17408257722854614,
+      "learning_rate": 2.0055723659649907e-06,
+      "epoch": 0.8109477952356817,
+      "step": 200
+    },
+    {
+      "loss": 0.4846,
+      "grad_norm": 0.12583914399147034,
+      "learning_rate": 1.273400411243857e-06,
+      "epoch": 0.8514951849974658,
+      "step": 210
+    },
+    {
+      "loss": 0.5349,
+      "grad_norm": 0.16192588210105896,
+      "learning_rate": 6.98286667506618e-07,
+      "epoch": 0.8920425747592499,
+      "step": 220
+    },
+    {
+      "loss": 0.4678,
+      "grad_norm": 0.1455865353345871,
+      "learning_rate": 2.905818257394799e-07,
+      "epoch": 0.9325899645210339,
+      "step": 230
+    },
+    {
+      "loss": 0.517,
+      "grad_norm": 0.15709519386291504,
+      "learning_rate": 5.7623611525721155e-08,
+      "epoch": 0.973137354282818,
+      "step": 240
+    },
+    {
+      "train_runtime": 1691.7734,
+      "train_samples_per_second": 2.332,
+      "train_steps_per_second": 0.146,
+      "total_flos": 5.517007735738368e+16,
+      "train_loss": 0.4903065965243197,
+      "epoch": 1.0,
+      "step": 247
+    }
+  ],
+  "adapter_dir": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/runs/qwen3-4b-targeted-bal/final_adapter"
+}

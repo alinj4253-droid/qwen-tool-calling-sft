@@ -1,0 +1,76 @@
+{
+  "n_cases": 220,
+  "n_tool_cases": 180,
+  "n_no_tool_cases": 40,
+  "tool_selection_accuracy": 0.3277777777777778,
+  "argument_exact_match": 0.19444444444444445,
+  "argument_key_accuracy": 0.35910493827160483,
+  "valid_tool_call_format_rate": 1.0,
+  "canonical_format_rate": 1.0,
+  "no_tool_accuracy": 0.1,
+  "tool_abstention_accuracy": 0.1,
+  "clean_stop_rate": 1.0,
+  "strict_protocol_success": 0.17727272727272728,
+  "strict_protocol_success_tool": 0.19444444444444445,
+  "strict_protocol_success_no_tool": 0.1,
+  "overall_exact_match": 0.17727272727272728,
+  "invalid_json_rate": 0.0,
+  "wrong_tool_rate": 0.6722222222222223,
+  "missing_argument_rate": 0.7833333333333333,
+  "extra_argument_rate": 0.0,
+  "by_category": {
+    "single_tool": {
+      "n": 60,
+      "overall": 20,
+      "strict": 20,
+      "n_tool": 60,
+      "n_parallel_calls": 0,
+      "accuracy": 0.3333333333333333,
+      "strict_protocol_rate": 0.3333333333333333
+    },
+    "multiple_tools": {
+      "n": 40,
+      "overall": 8,
+      "strict": 8,
+      "n_tool": 40,
+      "n_parallel_calls": 0,
+      "accuracy": 0.2,
+      "strict_protocol_rate": 0.2
+    },
+    "parallel_same_tool": {
+      "n": 50,
+      "overall": 6,
+      "strict": 6,
+      "n_tool": 50,
+      "n_parallel_calls": 50,
+      "accuracy": 0.12,
+      "strict_protocol_rate": 0.12
+    },
+    "parallel_diff_tool": {
+      "n": 30,
+      "overall": 1,
+      "strict": 1,
+      "n_tool": 30,
+      "n_parallel_calls": 30,
+      "accuracy": 0.03333333333333333,
+      "strict_protocol_rate": 0.03333333333333333
+    },
+    "no_tool": {
+      "n": 40,
+      "overall": 4,
+      "strict": 4,
+      "n_tool": 0,
+      "n_parallel_calls": 0,
+      "accuracy": 0.1,
+      "strict_protocol_rate": 0.1
+    }
+  },
+  "model_label": "SFT-v2-targeted-p10",
+  "cases_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/eval/bfcl_subset.jsonl",
+  "adapter_path": "runs/qwen3-4b-targeted-p10/final_adapter",
+  "loss_mode": "",
+  "special_token_training": "",
+  "max_new_tokens": 1024,
+  "do_sample": false,
+  "eval_duration_sec": 328.2
+}

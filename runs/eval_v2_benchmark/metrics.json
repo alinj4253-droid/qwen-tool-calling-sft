@@ -1,0 +1,103 @@
+{
+  "n_cases": 280,
+  "n_tool_cases": 220,
+  "n_no_tool_cases": 60,
+  "tool_selection_accuracy": 0.5454545454545454,
+  "argument_exact_match": 0.5045454545454545,
+  "argument_key_accuracy": 0.7446969696969697,
+  "valid_tool_call_format_rate": 1.0,
+  "canonical_format_rate": 1.0,
+  "no_tool_accuracy": 0.5833333333333334,
+  "tool_abstention_accuracy": 0.5833333333333334,
+  "clean_stop_rate": 1.0,
+  "strict_protocol_success": 0.5214285714285715,
+  "strict_protocol_success_tool": 0.5045454545454545,
+  "strict_protocol_success_no_tool": 0.5833333333333334,
+  "overall_exact_match": 0.5214285714285715,
+  "invalid_json_rate": 0.0,
+  "wrong_tool_rate": 0.45454545454545453,
+  "missing_argument_rate": 0.45454545454545453,
+  "extra_argument_rate": 0.045454545454545456,
+  "by_category": {
+    "distractor": {
+      "n": 30,
+      "overall": 26,
+      "strict": 26,
+      "n_tool": 30,
+      "n_parallel_calls": 0,
+      "accuracy": 0.8666666666666667,
+      "strict_protocol_rate": 0.8666666666666667
+    },
+    "wrong_tool_trap": {
+      "n": 26,
+      "overall": 1,
+      "strict": 1,
+      "n_tool": 0,
+      "n_parallel_calls": 0,
+      "accuracy": 0.038461538461538464,
+      "strict_protocol_rate": 0.038461538461538464
+    },
+    "multi_argument": {
+      "n": 30,
+      "overall": 28,
+      "strict": 28,
+      "n_tool": 30,
+      "n_parallel_calls": 0,
+      "accuracy": 0.9333333333333333,
+      "strict_protocol_rate": 0.9333333333333333
+    },
+    "single_tool": {
+      "n": 60,
+      "overall": 57,
+      "strict": 57,
+      "n_tool": 60,
+      "n_parallel_calls": 0,
+      "accuracy": 0.95,
+      "strict_protocol_rate": 0.95
+    },
+    "multiple_tools": {
+      "n": 30,
+      "overall": 0,
+      "strict": 0,
+      "n_tool": 30,
+      "n_parallel_calls": 0,
+      "accuracy": 0.0,
+      "strict_protocol_rate": 0.0
+    },
+    "no_tool": {
+      "n": 34,
+      "overall": 34,
+      "strict": 34,
+      "n_tool": 0,
+      "n_parallel_calls": 0,
+      "accuracy": 1.0,
+      "strict_protocol_rate": 1.0
+    },
+    "parallel_same_tool": {
+      "n": 50,
+      "overall": 0,
+      "strict": 0,
+      "n_tool": 50,
+      "n_parallel_calls": 50,
+      "accuracy": 0.0,
+      "strict_protocol_rate": 0.0
+    },
+    "parallel_diff_tool": {
+      "n": 20,
+      "overall": 0,
+      "strict": 0,
+      "n_tool": 20,
+      "n_parallel_calls": 20,
+      "accuracy": 0.0,
+      "strict_protocol_rate": 0.0
+    }
+  },
+  "model_label": "SFT-v2-30k",
+  "cases_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/eval/benchmark_extended.jsonl",
+  "adapter_path": "runs/qwen3-4b-sft-v2-30k-r32/final_adapter",
+  "loss_mode": "",
+  "special_token_training": "",
+  "max_new_tokens": 1024,
+  "do_sample": false,
+  "eval_duration_sec": 435.1
+}

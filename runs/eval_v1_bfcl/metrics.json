@@ -1,0 +1,76 @@
+{
+  "n_cases": 220,
+  "n_tool_cases": 180,
+  "n_no_tool_cases": 40,
+  "tool_selection_accuracy": 0.26666666666666666,
+  "argument_exact_match": 0.16666666666666666,
+  "argument_key_accuracy": 0.3269290123456791,
+  "valid_tool_call_format_rate": 1.0,
+  "canonical_format_rate": 1.0,
+  "no_tool_accuracy": 0.9,
+  "tool_abstention_accuracy": 0.9,
+  "clean_stop_rate": 1.0,
+  "strict_protocol_success": 0.3,
+  "strict_protocol_success_tool": 0.16666666666666666,
+  "strict_protocol_success_no_tool": 0.9,
+  "overall_exact_match": 0.3,
+  "invalid_json_rate": 0.0,
+  "wrong_tool_rate": 0.7333333333333333,
+  "missing_argument_rate": 0.8055555555555556,
+  "extra_argument_rate": 0.0,
+  "by_category": {
+    "single_tool": {
+      "n": 60,
+      "overall": 21,
+      "strict": 21,
+      "n_tool": 60,
+      "n_parallel_calls": 0,
+      "accuracy": 0.35,
+      "strict_protocol_rate": 0.35
+    },
+    "multiple_tools": {
+      "n": 40,
+      "overall": 8,
+      "strict": 8,
+      "n_tool": 40,
+      "n_parallel_calls": 0,
+      "accuracy": 0.2,
+      "strict_protocol_rate": 0.2
+    },
+    "parallel_same_tool": {
+      "n": 50,
+      "overall": 1,
+      "strict": 1,
+      "n_tool": 50,
+      "n_parallel_calls": 50,
+      "accuracy": 0.02,
+      "strict_protocol_rate": 0.02
+    },
+    "parallel_diff_tool": {
+      "n": 30,
+      "overall": 0,
+      "strict": 0,
+      "n_tool": 30,
+      "n_parallel_calls": 30,
+      "accuracy": 0.0,
+      "strict_protocol_rate": 0.0
+    },
+    "no_tool": {
+      "n": 40,
+      "overall": 36,
+      "strict": 36,
+      "n_tool": 0,
+      "n_parallel_calls": 0,
+      "accuracy": 0.9,
+      "strict_protocol_rate": 0.9
+    }
+  },
+  "model_label": "SFT-v1-30k",
+  "cases_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/eval/bfcl_subset.jsonl",
+  "adapter_path": "runs/qwen3-4b-sft-30k-r32/final_adapter",
+  "loss_mode": "",
+  "special_token_training": "",
+  "max_new_tokens": 1024,
+  "do_sample": false,
+  "eval_duration_sec": 309.9
+}

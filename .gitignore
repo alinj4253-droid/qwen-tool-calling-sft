@@ -32,9 +32,14 @@ data/raw/
 data/smoke/
 data/targeted_p05/
 data/targeted_p10/
+data/targeted_bal/
 
 # scratch / experiments
 tmp/
+
+# upstream reference snapshot: upstream ships no LICENSE, keep only version pin
+upstream-src/*
+!upstream-src/UPSTREAM_VERSION.txt
 
 # setup logs
 setup_logs/

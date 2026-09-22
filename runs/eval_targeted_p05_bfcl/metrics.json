@@ -1,0 +1,76 @@
+{
+  "n_cases": 220,
+  "n_tool_cases": 180,
+  "n_no_tool_cases": 40,
+  "tool_selection_accuracy": 0.3,
+  "argument_exact_match": 0.17777777777777778,
+  "argument_key_accuracy": 0.3424382716049383,
+  "valid_tool_call_format_rate": 1.0,
+  "canonical_format_rate": 1.0,
+  "no_tool_accuracy": 0.125,
+  "tool_abstention_accuracy": 0.125,
+  "clean_stop_rate": 1.0,
+  "strict_protocol_success": 0.16818181818181818,
+  "strict_protocol_success_tool": 0.17777777777777778,
+  "strict_protocol_success_no_tool": 0.125,
+  "overall_exact_match": 0.16818181818181818,
+  "invalid_json_rate": 0.0,
+  "wrong_tool_rate": 0.7,
+  "missing_argument_rate": 0.8,
+  "extra_argument_rate": 0.0,
+  "by_category": {
+    "single_tool": {
+      "n": 60,
+      "overall": 19,
+      "strict": 19,
+      "n_tool": 60,
+      "n_parallel_calls": 0,
+      "accuracy": 0.31666666666666665,
+      "strict_protocol_rate": 0.31666666666666665
+    },
+    "multiple_tools": {
+      "n": 40,
+      "overall": 8,
+      "strict": 8,
+      "n_tool": 40,
+      "n_parallel_calls": 0,
+      "accuracy": 0.2,
+      "strict_protocol_rate": 0.2
+    },
+    "parallel_same_tool": {
+      "n": 50,
+      "overall": 5,
+      "strict": 5,
+      "n_tool": 50,
+      "n_parallel_calls": 50,
+      "accuracy": 0.1,
+      "strict_protocol_rate": 0.1
+    },
+    "parallel_diff_tool": {
+      "n": 30,
+      "overall": 0,
+      "strict": 0,
+      "n_tool": 30,
+      "n_parallel_calls": 30,
+      "accuracy": 0.0,
+      "strict_protocol_rate": 0.0
+    },
+    "no_tool": {
+      "n": 40,
+      "overall": 5,
+      "strict": 5,
+      "n_tool": 0,
+      "n_parallel_calls": 0,
+      "accuracy": 0.125,
+      "strict_protocol_rate": 0.125
+    }
+  },
+  "model_label": "SFT-v2-targeted-p05",
+  "cases_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/eval/bfcl_subset.jsonl",
+  "adapter_path": "runs/qwen3-4b-targeted-p05/final_adapter",
+  "loss_mode": "",
+  "special_token_training": "",
+  "max_new_tokens": 1024,
+  "do_sample": false,
+  "eval_duration_sec": 304.5
+}

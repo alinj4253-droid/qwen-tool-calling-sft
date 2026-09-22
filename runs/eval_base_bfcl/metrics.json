@@ -1,0 +1,76 @@
+{
+  "n_cases": 220,
+  "n_tool_cases": 180,
+  "n_no_tool_cases": 40,
+  "tool_selection_accuracy": 0.9055555555555556,
+  "argument_exact_match": 0.7388888888888889,
+  "argument_key_accuracy": 0.9415123456790124,
+  "valid_tool_call_format_rate": 0.9833333333333333,
+  "canonical_format_rate": 0.0,
+  "no_tool_accuracy": 0.275,
+  "tool_abstention_accuracy": 0.275,
+  "clean_stop_rate": 0.7045454545454546,
+  "strict_protocol_success": 0.01818181818181818,
+  "strict_protocol_success_tool": 0.0,
+  "strict_protocol_success_no_tool": 0.1,
+  "overall_exact_match": 0.6318181818181818,
+  "invalid_json_rate": 0.0,
+  "wrong_tool_rate": 0.09444444444444444,
+  "missing_argument_rate": 0.12777777777777777,
+  "extra_argument_rate": 0.005555555555555556,
+  "by_category": {
+    "single_tool": {
+      "n": 60,
+      "overall": 45,
+      "strict": 0,
+      "n_tool": 60,
+      "n_parallel_calls": 0,
+      "accuracy": 0.75,
+      "strict_protocol_rate": 0.0
+    },
+    "multiple_tools": {
+      "n": 40,
+      "overall": 29,
+      "strict": 0,
+      "n_tool": 40,
+      "n_parallel_calls": 0,
+      "accuracy": 0.725,
+      "strict_protocol_rate": 0.0
+    },
+    "parallel_same_tool": {
+      "n": 50,
+      "overall": 32,
+      "strict": 0,
+      "n_tool": 50,
+      "n_parallel_calls": 50,
+      "accuracy": 0.64,
+      "strict_protocol_rate": 0.0
+    },
+    "parallel_diff_tool": {
+      "n": 30,
+      "overall": 22,
+      "strict": 0,
+      "n_tool": 30,
+      "n_parallel_calls": 30,
+      "accuracy": 0.7333333333333333,
+      "strict_protocol_rate": 0.0
+    },
+    "no_tool": {
+      "n": 40,
+      "overall": 11,
+      "strict": 4,
+      "n_tool": 0,
+      "n_parallel_calls": 0,
+      "accuracy": 0.275,
+      "strict_protocol_rate": 0.1
+    }
+  },
+  "model_label": "Base",
+  "cases_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/eval/bfcl_subset.jsonl",
+  "adapter_path": "",
+  "loss_mode": "",
+  "special_token_training": "",
+  "max_new_tokens": 1024,
+  "do_sample": false,
+  "eval_duration_sec": 2617.0
+}

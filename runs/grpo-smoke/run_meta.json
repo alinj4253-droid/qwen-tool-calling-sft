@@ -1,0 +1,19 @@
+{
+  "run_name": "grpo-smoke",
+  "base_adapter_path": [
+    "runs/qwen3-4b-sft-30k-r32/final_adapter",
+    "runs/qwen3-4b-targeted-v1-bal/final_adapter"
+  ],
+  "n_smoke_cases": 80,
+  "max_steps": 30,
+  "num_generations": 4,
+  "learning_rate": 1e-05,
+  "train_seconds": 978.3373878002167,
+  "reward_components": [
+    "reward_canonical_format",
+    "reward_clean_stop",
+    "reward_tool_selection",
+    "reward_arguments",
+    "reward_parallel_completion"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "local_rank": 0,
+  "world_size": 2,
+  "device_index_current": 0,
+  "devices": {
+    "cuda0": {
+      "device_name": "NVIDIA GeForce RTX 4090",
+      "peak_mem_allocated_gb": 17.675,
+      "peak_mem_reserved_gb": 21.081
+    },
+    "cuda1": {
+      "device_name": "NVIDIA GeForce RTX 4090",
+      "peak_mem_allocated_gb": 0.0,
+      "peak_mem_reserved_gb": 0.0
+    }
+  }
+}

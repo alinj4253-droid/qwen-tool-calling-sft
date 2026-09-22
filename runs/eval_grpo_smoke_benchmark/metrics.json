@@ -1,0 +1,103 @@
+{
+  "n_cases": 280,
+  "n_tool_cases": 220,
+  "n_no_tool_cases": 60,
+  "tool_selection_accuracy": 0.5409090909090909,
+  "argument_exact_match": 0.4772727272727273,
+  "argument_key_accuracy": 0.7401515151515152,
+  "valid_tool_call_format_rate": 0.9954545454545455,
+  "canonical_format_rate": 0.9954545454545455,
+  "no_tool_accuracy": 0.9166666666666666,
+  "tool_abstention_accuracy": 0.9166666666666666,
+  "clean_stop_rate": 1.0,
+  "strict_protocol_success": 0.5714285714285714,
+  "strict_protocol_success_tool": 0.4772727272727273,
+  "strict_protocol_success_no_tool": 0.9166666666666666,
+  "overall_exact_match": 0.5714285714285714,
+  "invalid_json_rate": 0.0,
+  "wrong_tool_rate": 0.4590909090909091,
+  "missing_argument_rate": 0.4590909090909091,
+  "extra_argument_rate": 0.03636363636363636,
+  "by_category": {
+    "distractor": {
+      "n": 30,
+      "overall": 26,
+      "strict": 26,
+      "n_tool": 30,
+      "n_parallel_calls": 0,
+      "accuracy": 0.8666666666666667,
+      "strict_protocol_rate": 0.8666666666666667
+    },
+    "wrong_tool_trap": {
+      "n": 26,
+      "overall": 21,
+      "strict": 21,
+      "n_tool": 0,
+      "n_parallel_calls": 0,
+      "accuracy": 0.8076923076923077,
+      "strict_protocol_rate": 0.8076923076923077
+    },
+    "multi_argument": {
+      "n": 30,
+      "overall": 27,
+      "strict": 27,
+      "n_tool": 30,
+      "n_parallel_calls": 0,
+      "accuracy": 0.9,
+      "strict_protocol_rate": 0.9
+    },
+    "single_tool": {
+      "n": 60,
+      "overall": 52,
+      "strict": 52,
+      "n_tool": 60,
+      "n_parallel_calls": 0,
+      "accuracy": 0.8666666666666667,
+      "strict_protocol_rate": 0.8666666666666667
+    },
+    "multiple_tools": {
+      "n": 30,
+      "overall": 0,
+      "strict": 0,
+      "n_tool": 30,
+      "n_parallel_calls": 0,
+      "accuracy": 0.0,
+      "strict_protocol_rate": 0.0
+    },
+    "no_tool": {
+      "n": 34,
+      "overall": 34,
+      "strict": 34,
+      "n_tool": 0,
+      "n_parallel_calls": 0,
+      "accuracy": 1.0,
+      "strict_protocol_rate": 1.0
+    },
+    "parallel_same_tool": {
+      "n": 50,
+      "overall": 0,
+      "strict": 0,
+      "n_tool": 50,
+      "n_parallel_calls": 50,
+      "accuracy": 0.0,
+      "strict_protocol_rate": 0.0
+    },
+    "parallel_diff_tool": {
+      "n": 20,
+      "overall": 0,
+      "strict": 0,
+      "n_tool": 20,
+      "n_parallel_calls": 20,
+      "accuracy": 0.0,
+      "strict_protocol_rate": 0.0
+    }
+  },
+  "model_label": "GRPO-smoke",
+  "cases_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/eval/benchmark_extended.jsonl",
+  "adapter_path": "runs/grpo-smoke/final_adapter",
+  "loss_mode": "",
+  "special_token_training": "",
+  "max_new_tokens": 1024,
+  "do_sample": false,
+  "eval_duration_sec": 434.5
+}

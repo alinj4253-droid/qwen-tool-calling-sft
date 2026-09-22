@@ -1,0 +1,161 @@
+{
+  "run_name": "qwen3-4b-targeted-v1-bal",
+  "git_head": "4c5d0ec9bbd172085f39670efc2ce48cd339fd19",
+  "config": {
+    "run_name": "qwen3-4b-targeted-v1-bal",
+    "model_path": "Qwen/Qwen3-4B-Base",
+    "base_adapter_path": "runs/qwen3-4b-sft-30k-r32/final_adapter",
+    "data_dir": "data/targeted_bal",
+    "load_in_4bit": false,
+    "bf16": true,
+    "max_seq_length": 2048,
+    "loss_mode": "assistant_only",
+    "special_token_training": "none",
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "max_steps": -1,
+    "num_train_epochs": 2,
+    "learning_rate": 0.0001,
+    "lr_scheduler_type": "cosine",
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.0,
+    "gradient_checkpointing": true,
+    "packing": false,
+    "logging_steps": 10,
+    "save_steps": 300,
+    "save_total_limit": 1,
+    "do_eval": false,
+    "seed": 42,
+    "dataloader_num_workers": 2,
+    "optim": "adamw_8bit"
+  },
+  "model_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/models_local/Qwen/Qwen3-4B-Base",
+  "loss_mode": "assistant_only",
+  "special_token_training": "none",
+  "trainable_token_indices": [
+    151644,
+    151645,
+    151657,
+    151658,
+    151665,
+    151666
+  ],
+  "torch": "2.14.0+cu130",
+  "transformers": "4.57.6",
+  "cuda": "13.0",
+  "world_size": 2,
+  "gpu_names": [
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090"
+  ],
+  "train_samples": 3946,
+  "train_token_stats": {
+    "examples": 3946,
+    "invalid": 0,
+    "too_long": 54,
+    "total_tokens": 2507816,
+    "loss_tokens": 1101408
+  },
+  "eval_samples": 0,
+  "eval_token_stats": {},
+  "global_steps": 494,
+  "duration_sec": 1730.9,
+  "peak_mem_per_rank": {
+    "rank0_allocated_gb": 11.206,
+    "rank0_reserved_gb": 11.715,
+    "rank1_allocated_gb": 11.234,
+    "rank1_reserved_gb": 11.631
+  },
+  "trainable_params": 33030144,
+  "all_params": 4444454400,
+  "trainable_pct": 0.7432,
+  "adapter_bytes": 148083090,
+  "adapter_size_mb": 148.1,
+  "final_log_history": [
+    {
+      "loss": 0.1934,
+      "grad_norm": 0.07515305280685425,
+      "learning_rate": 7.888009784329669e-06,
+      "epoch": 1.6609224531170805,
+      "step": 410
+    },
+    {
+      "loss": 0.1842,
+      "grad_norm": 0.08751778304576874,
+      "learning_rate": 6.178213524602061e-06,
+      "epoch": 1.7014698428788648,
+      "step": 420
+    },
+    {
+      "loss": 0.2133,
+      "grad_norm": 0.11302720010280609,
+      "learning_rate": 4.66497120000603e-06,
+      "epoch": 1.7420172326406487,
+      "step": 430
+    },
+    {
+      "loss": 0.2069,
+      "grad_norm": 0.09718943387269974,
+      "learning_rate": 3.3550701589732115e-06,
+      "epoch": 1.782564622402433,
+      "step": 440
+    },
+    {
+      "loss": 0.2045,
+      "grad_norm": 0.10020005702972412,
+      "learning_rate": 2.254385702922318e-06,
+      "epoch": 1.8231120121642168,
+      "step": 450
+    },
+    {
+      "loss": 0.1905,
+      "grad_norm": 0.10140449553728104,
+      "learning_rate": 1.3678547337593494e-06,
+      "epoch": 1.863659401926001,
+      "step": 460
+    },
+    {
+      "loss": 0.1928,
+      "grad_norm": 0.08942875266075134,
+      "learning_rate": 6.994536103829164e-07,
+      "epoch": 1.904206791687785,
+      "step": 470
+    },
+    {
+      "loss": 0.2179,
+      "grad_norm": 0.0795990526676178,
+      "learning_rate": 2.521803135147827e-07,
+      "epoch": 1.9447541814495692,
+      "step": 480
+    },
+    {
+      "loss": 0.2092,
+      "grad_norm": 0.6857158541679382,
+      "learning_rate": 2.8040998851674994e-08,
+      "epoch": 1.9853015712113533,
+      "step": 490
+    },
+    {
+      "train_runtime": 1728.4763,
+      "train_samples_per_second": 4.566,
+      "train_steps_per_second": 0.286,
+      "total_flos": 1.220453199815639e+17,
+      "train_loss": 0.2071884334811315,
+      "epoch": 2.0,
+      "step": 494
+    }
+  ],
+  "adapter_dir": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/runs/qwen3-4b-targeted-v1-bal/final_adapter"
+}
