@@ -189,7 +189,10 @@ def main() -> None:
         dataloader_num_workers=int(cfg.get("dataloader_num_workers", 2)),
         optim=cfg.get("optim", "adamw_torch"),
         report_to="none",
-        max_seq_length=int(cfg.get("max_seq_length", 2048)),
+        # TRL >=1.0 renamed max_seq_length -> max_length; filter_supported
+        # keeps whichever the installed SFTConfig actually accepts.
+        max_length=int(cfg.get("max_seq_length", cfg.get("max_length", 2048))),
+        max_seq_length=int(cfg.get("max_seq_length", cfg.get("max_length", 2048))),
         packing=bool(cfg.get("packing", True)),
         dataset_text_field="text",
         ddp_find_unused_parameters=False,

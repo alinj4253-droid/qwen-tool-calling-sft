@@ -100,7 +100,9 @@ def validate_sample(sample: dict) -> tuple[bool, str]:
 def normalize_for_template(messages: list[dict]) -> list[dict]:
     """Return a cleaned copy safe for tokenizer.apply_chat_template.
 
-    Mirrors upstream logic: arguments must be dicts, content null on calls.
+    Mirrors upstream logic: arguments must be dicts; assistant tool-call
+    turns use empty-string content (None breaks the Qwen3 template's
+    `'</think>' in message.content` guard).
     """
     cleaned: list[dict] = []
     for m in messages:
@@ -122,7 +124,11 @@ def normalize_for_template(messages: list[dict]) -> list[dict]:
                     "function": {"name": func.get("name", ""), "arguments": args},
                 })
             msg["tool_calls"] = tcs
-            msg["content"] = None
+        # The official Qwen3 chat template runs `'</think>' in message.content`
+        # on every assistant turn, so assistant content must never be None
+        # (canonical tool-call turns use an empty string).
+        if msg["role"] == "assistant" and msg.get("content") is None:
+            msg["content"] = ""
         if m.get("name"):
             msg["name"] = m["name"]
         cleaned.append(msg)

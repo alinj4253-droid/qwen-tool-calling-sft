@@ -2,6 +2,7 @@
 """Download a base model INTO the project directory (models_local/).
 
 Primary: ModelScope (fast from CN networks). Fallback: HuggingFace mirror.
+Files land directly in models_local/<model_id> (deterministic local path).
 """
 from __future__ import annotations
 
@@ -10,7 +11,8 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from qwen_tool_sft import paths  # noqa: E402
 
@@ -19,11 +21,7 @@ def via_modelscope(model_id: str, target: Path) -> Path:
     from modelscope import snapshot_download
 
     print(f"[modelscope] downloading {model_id} -> {target}")
-    p = snapshot_download(
-        model_id=model_id,
-        cache_dir=str(paths.MODELS_DIR),
-        local_dir=str(target) if False else None,  # cache_dir keeps id layout
-    )
+    p = snapshot_download(model_id, local_dir=str(target))
     return Path(p)
 
 
@@ -44,6 +42,7 @@ def main() -> None:
 
     paths.ensure_project_dirs()
     target = paths.MODELS_DIR / args.model
+    target.parent.mkdir(parents=True, exist_ok=True)
     if (target / "config.json").exists():
         print(f"already present: {target}")
         print(target)

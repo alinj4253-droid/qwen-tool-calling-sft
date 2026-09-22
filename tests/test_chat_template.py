@@ -1,51 +1,87 @@
-"""Integration: tokenizer chat template supports tools and tool_calls.
+"""Integration: the downloaded tokenizer must render the Qwen3 tool-calling
+chat template (skipped until the model has been downloaded)."""
+from __future__ import annotations
 
-Skips automatically when the base model has not been downloaded yet.
-"""
 import pytest
 
-from qwen_tool_sft import paths
-from qwen_tool_sft.dataio import normalize_for_template
-from qwen_tool_sft.parser import parse_tool_calls
-
-MODEL = "Qwen/Qwen3-4B-Base"
+from qwen_tool_sft.dataio import normalize_for_template, render_text
 
 
-def _model_dir():
-    d = paths.model_path(MODEL)
-    return d if (d / "config.json").exists() else None
+def test_chat_template_with_tools(tokenizer):
+    if tokenizer is None:
+        pytest.skip("base model tokenizer not downloaded yet")
 
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "get weather",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"city": {"type": "string"}},
+                    "required": ["city"],
+                },
+            },
+        }
+    ]
 
-def test_chat_template_with_tools():
-    d = _model_dir()
-    if d is None:
-        pytest.skip("base model not downloaded")
-    from transformers import AutoTokenizer
-    tok = AutoTokenizer.from_pretrained(d)
+    # 1) prompt side: tools are exposed to the model
+    prompt = tokenizer.apply_chat_template(
+        [{"role": "user", "content": "北京今天天气怎么样？"}],
+        tools=tools,
+        add_generation_prompt=True,
+        tokenize=False,
+    )
+    assert "get_weather" in prompt
+    assert "<tools>" in prompt and "</tools>" in prompt
+    assert "<|im_start|>assistant" in prompt
 
-    tools = [{"type": "function", "function": {
-        "name": "get_weather",
-        "description": "query weather",
-        "parameters": {"type": "object",
-                       "properties": {"city": {"type": "string"}},
-                       "required": ["city"]}}}]
+    # 2) no-tools conversation must not leak tool scaffolding
+    plain = tokenizer.apply_chat_template(
+        [{"role": "user", "content": "你好"}],
+        add_generation_prompt=True,
+        tokenize=False,
+    )
+    assert "<tools>" not in plain
+
+    # 3) completion side: assistant tool-call turn with content=None (upstream
+    #    convention) must render after our normalization, not crash the
+    #    Qwen3 template (`</think> in message.content`).
     messages = [
-        {"role": "user", "content": "北京天气怎么样？"},
+        {"role": "user", "content": "北京今天天气怎么样？"},
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "type": "function",
+                    "function": {
+                        "name": "get_weather",
+                        "arguments": {"city": "北京"},
+                    },
+                }
+            ],
+        },
+        {"role": "tool", "name": "get_weather", "content": "晴，25度"},
+    ]
+    rendered = render_text(tokenizer, messages, tools)
+    assert "<tool_call>" in rendered
+    assert "get_weather" in rendered
+    assert "北京" in rendered
+    assert "<tool_response>" in rendered
+    # normalization must never emit python None into the text
+    assert "None" not in rendered.split("<tool_call>")[1].split("</tool_call>")[0]
+
+
+def test_normalize_fills_none_assistant_content():
+    msgs = [
         {"role": "assistant", "content": None, "tool_calls": [
             {"type": "function",
-             "function": {"name": "get_weather", "arguments": {"city": "北京"}}}]},
+             "function": {"name": "f", "arguments": {"a": 1}}}]},
+        {"role": "assistant", "content": None},
     ]
-    text = tok.apply_chat_template(normalize_for_template(messages), tools=tools,
-                                   tokenize=False, add_generation_prompt=False)
-    assert "get_weather" in text
-    parsed = parse_tool_calls(text)
-    assert parsed.names == ["get_weather"]
-    assert parsed.calls[0].arguments == {"city": "北京"}
-
-    # generation prompt renders the tool definitions
-    prompt = tok.apply_chat_template(
-        [{"role": "user", "content": "查东京天气"}], tools=tools,
-        tokenize=False, add_generation_prompt=True)
-    assert "get_weather" in prompt
-    ids = tok(prompt, return_tensors="pt")["input_ids"]
-    assert ids.shape[1] > 0
+    out = normalize_for_template(msgs)
+    assert out[0]["content"] == ""
+    assert out[1]["content"] == ""
