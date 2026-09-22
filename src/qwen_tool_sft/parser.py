@@ -25,6 +25,9 @@ class ParsedCall:
 class ParseResult:
     calls: list[ParsedCall] = field(default_factory=list)
     invalid_blocks: list[str] = field(default_factory=list)
+    # extraction channel of each call, aligned with ``calls``:
+    # "native" (<tool_call> block), "fenced" (```json), "bare" (leading JSON)
+    sources: list[str] = field(default_factory=list)
 
     @property
     def has_calls(self) -> bool:
@@ -33,6 +36,10 @@ class ParseResult:
     @property
     def names(self) -> list[str]:
         return [c.name for c in self.calls]
+
+    @property
+    def all_native(self) -> bool:
+        return bool(self.calls) and all(s == "native" for s in self.sources)
 
 
 def _loose_json_loads(text: str):
@@ -139,6 +146,7 @@ def parse_tool_calls(text: str) -> ParseResult:
         calls, ok = _parse_block(block)
         if calls:
             result.calls.extend(calls)
+            result.sources.extend(["native"] * len(calls))
             if not ok:
                 result.invalid_blocks.append(block)
         else:
@@ -152,6 +160,7 @@ def parse_tool_calls(text: str) -> ParseResult:
         calls, ok = _parse_block(m.group(1))
         if calls:
             result.calls.extend(calls)
+            result.sources.extend(["fenced"] * len(calls))
             if not ok:
                 result.invalid_blocks.append(m.group(1))
     if result.calls:
@@ -177,5 +186,6 @@ def parse_tool_calls(text: str) -> ParseResult:
         if not batch or len(batch) != len(objs):
             break
         result.calls.extend(batch)
+        result.sources.extend(["bare"] * len(batch))
         pos = end
     return result

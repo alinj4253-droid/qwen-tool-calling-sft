@@ -26,7 +26,9 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 from qwen_tool_sft import paths  # noqa: E402
 from qwen_tool_sft.config import load_config, parse_kv  # noqa: E402
 from qwen_tool_sft.dataio import iter_jsonl, normalize_for_template  # noqa: E402
-from qwen_tool_sft.metrics import aggregate, metrics_table, score_case  # noqa: E402
+from qwen_tool_sft.metrics import (  # noqa: E402
+    aggregate, metrics_table, prompt_leaked, score_case,
+)
 from qwen_tool_sft.parser import parse_tool_calls  # noqa: E402
 
 
@@ -70,7 +72,7 @@ def build_eos_ids(model, tokenizer) -> list[int]:
 
 
 def generate_once(model, tokenizer, device, messages, tools, gen_cfg: dict,
-                  eos_ids: list[int] | None = None) -> str:
+                  eos_ids: list[int] | None = None) -> tuple[str, bool]:
     prompt = tokenizer.apply_chat_template(
         messages,
         tools=tools or None,
@@ -87,7 +89,8 @@ def generate_once(model, tokenizer, device, messages, tools, gen_cfg: dict,
             eos_token_id=eos_ids,
         )
     gen = out[0][inputs["input_ids"].shape[1]:]
-    return tokenizer.decode(gen, skip_special_tokens=False)
+    terminated = int(gen[-1]) in set(eos_ids or [])
+    return tokenizer.decode(gen, skip_special_tokens=False), terminated
 
 
 def main() -> None:
@@ -117,15 +120,21 @@ def main() -> None:
     model, tokenizer, device = build_model(cfg)
     gen_cfg = cfg.get("generation", {})
     eos_ids = build_eos_ids(model, tokenizer)
-    print(f"eos_token_id set: {eos_ids}")
+    terminator_strs = tuple(
+        t for t in (tokenizer.decode([i], skip_special_tokens=False) for i in eos_ids) if t
+    )
+    print(f"eos_token_id set: {eos_ids} -> terminators {terminator_strs}")
 
     predictions, scores = [], []
     t0 = time.time()
     for i, case in enumerate(cases, 1):
-        raw = generate_once(model, tokenizer, device, case["messages"],
-                            case.get("tools"), gen_cfg, eos_ids=eos_ids)
+        raw, terminated = generate_once(model, tokenizer, device, case["messages"],
+                                        case.get("tools"), gen_cfg, eos_ids=eos_ids)
         parsed = parse_tool_calls(raw)
-        sc = score_case(case, parsed)
+        # Token-level stop signal + string check (last token may be a special
+        # stripped differently across tokenizer versions).
+        sc = score_case(case, parsed, raw=raw, terminators=terminator_strs)
+        sc.clean_stop = (sc.clean_stop or terminated) and not prompt_leaked(raw)
         if i <= 5 or not sc.overall:
             print(f"[{i:02d}/{len(cases)}] {case.get('id')} | {case.get('category')} "
                   f"| overall={sc.overall} pred={parsed.names}")
@@ -140,6 +149,9 @@ def main() -> None:
             "score": {
                 "overall": sc.overall,
                 "valid_format": sc.valid_format,
+                "canonical_format": sc.canonical_format,
+                "clean_stop": sc.clean_stop,
+                "terminated": terminated,
                 "tool_selection_correct": sc.tool_selection_correct,
                 "arg_key_accuracy": sc.arg_key_accuracy,
                 "arg_exact_match": sc.arg_exact_match,

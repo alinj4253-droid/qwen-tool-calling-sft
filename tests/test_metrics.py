@@ -80,3 +80,31 @@ def test_aggregate_rates():
     assert m["tool_selection_accuracy"] == 0.5
     assert m["no_tool_accuracy"] == 1.0
     assert 0 <= m["overall_exact_match"] <= 1
+
+
+def test_canonical_format_distinguishes_native_from_bare_json():
+    native = score_case(tool_case(), parse_tool_calls(
+        '<tool_call>{"name": "get_weather", "arguments": {"city": "Tokyo"}}</tool_call>'))
+    bare = score_case(tool_case(), parse_tool_calls(
+        '{"name": "get_weather", "arguments": {"city": "Tokyo"}}'))
+    assert native.canonical_format is True
+    # bare JSON parses correctly but is not the canonical protocol wrapper
+    assert bare.canonical_format is False
+    assert bare.valid_format and bare.overall
+
+
+def test_clean_stop_detection():
+    good = '<tool_call>{"name": "f", "arguments": {}}</tool_call><|im_end|>'
+    leak = ('{"name": "f", "arguments": {}}\n'
+            'system\n# repeat the whole prompt again...')
+    assert score_case(tool_case(), parse_tool_calls(good), raw=good).clean_stop
+    assert not score_case(tool_case(), parse_tool_calls(leak), raw=leak).clean_stop
+
+
+def test_trailing_punctuation_ignored_in_arguments():
+    case = tool_case(calls=[{"name": "send_email",
+                             "arguments": {"body": "请参加周五的会议"}}])
+    out = ('<tool_call>{"name": "send_email", "arguments": '
+           '{"body": "请参加周五的会议。"}}</tool_call>')
+    sc = score_case(case, parse_tool_calls(out))
+    assert sc.arg_exact_match and sc.overall

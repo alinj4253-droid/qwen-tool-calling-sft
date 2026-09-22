@@ -16,16 +16,36 @@ Aggregated metrics:
 """
 from __future__ import annotations
 
+import re
 from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any
 
 from .parser import ParseResult
 
+# trailing sentence punctuation is irrelevant to argument correctness
+_TRAILING_PUNCT = "。.!！?？;；,，"
+# base models degenerate into re-emitting the prompt with role markers
+_LEAK_RE = re.compile(r"<\|im_start\|>|(?:^|\n)\s*(?:system|user|assistant)\s*\n")
+
+
+def prompt_leaked(raw: str) -> bool:
+    """True when a generation degenerates into re-emitting the chat prompt."""
+    return bool(raw and _LEAK_RE.search(raw.strip()))
+
+
+def cleanly_terminated(raw: str, terminators: tuple[str, ...] = ("<|im_end|>",)) -> bool:
+    """True when a generation stops on a turn token without prompt leak."""
+    if not raw:
+        return False
+    text = raw.strip()
+    terminates = any(text.endswith(t) for t in terminators)
+    return terminates and not _LEAK_RE.search(text)
+
 
 def normalize_value(v: Any) -> Any:
     if isinstance(v, str):
-        s = v.strip()
+        s = v.strip().rstrip(_TRAILING_PUNCT).strip()
         try:  # numeric string -> number
             f = float(s)
             return f
@@ -48,10 +68,12 @@ class CaseScore:
     category: str
     expected_tool: bool
     valid_format: bool = False
+    canonical_format: bool | None = None
     tool_selection_correct: bool = False
     arg_key_accuracy: float | None = None
     arg_exact_match: bool = False
     no_tool_correct: bool | None = None
+    clean_stop: bool = False
     overall: bool = False
     invalid_json: bool = False
     wrong_tool: bool = False
@@ -87,7 +109,8 @@ def _match_calls(expected: list[dict], predicted_calls: list):
     return alignment, unmatched
 
 
-def score_case(case: dict, parsed: ParseResult) -> CaseScore:
+def score_case(case: dict, parsed: ParseResult, raw: str = "",
+               terminators: tuple[str, ...] = ("<|im_end|>",)) -> CaseScore:
     expect = case.get("expect", {})
     mode = expect.get("mode", "tool")
     expected_tool = mode == "tool"
@@ -97,6 +120,7 @@ def score_case(case: dict, parsed: ParseResult) -> CaseScore:
         expected_tool=expected_tool,
         expected_names=[c["name"] for c in expect.get("calls", [])],
         predicted_names=parsed.names,
+        clean_stop=cleanly_terminated(raw, terminators),
     )
 
     if not expected_tool:
@@ -108,6 +132,9 @@ def score_case(case: dict, parsed: ParseResult) -> CaseScore:
 
     expected_calls = expect.get("calls", [])
     score.valid_format = any(c.valid_json for c in parsed.calls)
+    # Protocol compliance: calls must use the native <tool_call> wrapper,
+    # not bare/fenced JSON that a lenient parser can also read.
+    score.canonical_format = parsed.all_native
     score.invalid_json = bool(parsed.invalid_blocks) or (
         parsed.has_calls and not all(c.valid_json for c in parsed.calls)
     )
@@ -172,7 +199,9 @@ def aggregate(scores: list[CaseScore]) -> dict:
         "argument_exact_match": mean([int(s.arg_exact_match) for s in tool]),
         "argument_key_accuracy": mean([s.arg_key_accuracy or 0.0 for s in tool]),
         "valid_tool_call_format_rate": mean([int(s.valid_format) for s in tool]),
+        "canonical_format_rate": mean([int(s.canonical_format or False) for s in tool]),
         "no_tool_accuracy": mean([int(s.no_tool_correct or 0) for s in no_tool]),
+        "clean_stop_rate": mean([int(s.clean_stop) for s in scores]),
         "overall_exact_match": mean([int(s.overall) for s in scores]),
         "invalid_json_rate": mean([int(s.invalid_json) for s in tool]),
         "wrong_tool_rate": mean([int(s.wrong_tool) for s in tool]),
@@ -189,7 +218,9 @@ def metrics_table(metrics_a: dict, name_a: str, metrics_b: dict | None = None,
         ("Argument Exact Match", "argument_exact_match"),
         ("Argument Key Accuracy", "argument_key_accuracy"),
         ("Valid Tool Call Format Rate", "valid_tool_call_format_rate"),
+        ("Canonical <tool_call> Format Rate", "canonical_format_rate"),
         ("No-Tool Accuracy", "no_tool_accuracy"),
+        ("Clean Stop Rate", "clean_stop_rate"),
         ("Overall Exact Match", "overall_exact_match"),
         ("Invalid JSON Rate", "invalid_json_rate"),
         ("Wrong Tool Rate", "wrong_tool_rate"),
