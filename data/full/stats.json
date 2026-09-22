@@ -1,0 +1,21 @@
+{
+  "created_at": "2026-09-22T13:59:56+0800",
+  "seed": 42,
+  "streaming": false,
+  "per_source_cap": null,
+  "per_source_counts": {
+    "deepexi_zh": 24608,
+    "glaive_zh": 1000,
+    "glaive_v2_en": 100561,
+    "hermes_en": 8995,
+    "toolace_en": 10547,
+    "opus_reasoning_en": 2308,
+    "openclaw_en": 8004
+  },
+  "failures": {},
+  "deduped_total": 105381,
+  "train": 94842,
+  "eval": 10539,
+  "with_tools": 66882,
+  "with_tools_pct": 63.47
+}

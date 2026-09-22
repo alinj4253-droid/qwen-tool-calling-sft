@@ -185,7 +185,7 @@ PYTHONPATH=src python -m pytest -q          # 47 个测试：路径守卫/数据
 python -m compileall -q scripts src eval tests
 ```
 
-## 10. 安全边界（最高优先级）
+## 10. 安全边界（最高优先级）与隐私说明
 
 - 所有写入只发生在 `/mnt/ssd2/psf/job/qwen-tool-calling-sft`；
   `paths.resolve_path` 对越界路径直接报错。
@@ -193,6 +193,10 @@ python -m compileall -q scripts src eval tests
 - 不杀他人进程。目录中原有的 Ollama 服务（端口 11434）保持运行，
   训练前用 `nvidia-smi` 复核双卡空闲。
 - SSH 密码、Token 等凭据一律不写入仓库 / 日志 / 配置。
+- **发布到 GitHub 前的脱敏与排除清单见 [PRIVACY.md](PRIVACY.md)**：
+  仓库不含密码/私钥/令牌/内网 IP（含完整 git 历史已扫描）；模型权重、原始数据、
+  adapter safetensors、运行日志按 `.gitignore` 排除；用户名/家目录路径已泛化。
+  建议仓库保持 Private。
 
 ## 11. 参考与许可
 

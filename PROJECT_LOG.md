@@ -16,8 +16,8 @@
   **决定：旧文件与 ollama 服务全部保留不动，不杀进程，不抢占**。
 - 其余占用 job 目录 cwd 的进程为用户本人 VSCode Remote-SSH 服务，无影响。
 - GPU：2× RTX 4090（24564 MiB），驱动 595.91.07（CUDA 13.2），审计时仅 Xorg/gnome 占用，基本空闲。
-- 磁盘：`/mnt/ssd2` 可用 86G；系统盘 `/` 可用 40G（conda 环境位于 `/home/wmy/anaconda3`）。
-- Conda：`/home/wmy/anaconda3`，已有 16 个他人/历史环境，**全部只读不改**。
+- 磁盘：`/mnt/ssd2` 可用 86G；系统盘 `/` 可用 40G（conda 环境位于 `~/anaconda3（/home/<linux-user>/anaconda3）`）。
+- Conda：`~/anaconda3（/home/<linux-user>/anaconda3）`，已有 16 个他人/历史环境，**全部只读不改**。
 
 #### 2. 项目初始化
 - 新建独立项目目录 `/mnt/ssd2/psf/job/qwen-tool-calling-sft`，所有新操作限定其中。

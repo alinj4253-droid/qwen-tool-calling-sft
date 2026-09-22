@@ -29,7 +29,7 @@ def test_relative_resolves_inside():
 
 @pytest.mark.parametrize("bad", [
     "/etc/passwd",
-    "/home/wmy/secret",
+    "/home/other-user/secret",
     "/Users/icecee/qwen35-finetune/data",
     "/mnt/ssd2/psf/job/other_project/x",
     "../outside.txt",
