@@ -1,0 +1,10 @@
+run_name: targeted-p10-benchmark
+model_label: SFT-v2-targeted-p10
+model_path: Qwen/Qwen3-4B-Base
+base_adapter_path: runs/qwen3-4b-sft-v2-30k-r32/final_adapter
+adapter_path: runs/qwen3-4b-targeted-p10/final_adapter
+eval_set: eval/benchmark_extended.jsonl
+output_subdir: runs/eval_targeted_p10_benchmark
+bf16: true
+generation:
+  max_new_tokens: 1024

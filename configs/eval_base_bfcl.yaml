@@ -1,0 +1,9 @@
+# Base model on the BFCL v4 offline reproducible subset (220 cases).
+run_name: base-bfcl
+model_label: Base
+model_path: Qwen/Qwen3-4B-Base
+eval_set: eval/bfcl_subset.jsonl
+output_subdir: runs/eval_base_bfcl
+bf16: true
+generation:
+  max_new_tokens: 1024

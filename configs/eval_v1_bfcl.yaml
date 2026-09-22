@@ -1,0 +1,10 @@
+# v1 SFT-30k adapter on the BFCL v4 offline reproducible subset (220 cases).
+run_name: v1-30k-bfcl
+model_label: SFT-v1-30k
+model_path: Qwen/Qwen3-4B-Base
+adapter_path: runs/qwen3-4b-sft-30k-r32/final_adapter
+eval_set: eval/bfcl_subset.jsonl
+output_subdir: runs/eval_v1_bfcl
+bf16: true
+generation:
+  max_new_tokens: 1024

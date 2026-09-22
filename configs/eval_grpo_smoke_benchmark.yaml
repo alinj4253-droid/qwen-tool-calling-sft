@@ -1,0 +1,12 @@
+run_name: grpo-smoke-benchmark
+model_label: GRPO-smoke
+model_path: Qwen/Qwen3-4B-Base
+base_adapter_path:
+  - runs/qwen3-4b-sft-30k-r32/final_adapter
+  - runs/qwen3-4b-targeted-v1-bal/final_adapter
+adapter_path: runs/grpo-smoke/final_adapter
+eval_set: eval/benchmark_extended.jsonl
+output_subdir: runs/eval_grpo_smoke_benchmark
+bf16: true
+generation:
+  max_new_tokens: 1024

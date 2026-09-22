@@ -1,0 +1,30 @@
+# P2 minimal GRPO smoke (task book sections 14-16). Start from the best SFT
+# checkpoint: base + v1-30k + targeted-v1-bal merged in memory; fresh LoRA.
+# 80 prompts (32 same-tool parallel, 32 different-tool parallel, 16 trap/chat
+# guards), 30 steps, transformers rollout (no vLLM), five interpretable
+# rewards. Not a full RL run; retention decided by section-17 bar.
+run_name: grpo-smoke
+model_path: Qwen/Qwen3-4B-Base
+base_adapter_path:
+  - runs/qwen3-4b-sft-30k-r32/final_adapter
+  - runs/qwen3-4b-targeted-v1-bal/final_adapter
+data_dir: data/targeted_bal
+n_parallel_same: 32
+n_parallel_diff: 32
+n_guard: 16
+seed: 42
+output_dir: runs/grpo-smoke
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+per_device_train_batch_size: 4
+num_generations: 4
+gradient_accumulation_steps: 4
+max_completion_length: 512
+max_prompt_tokens: 2048
+temperature: 1.0
+beta: 0.0
+learning_rate: 1.0e-5
+warmup_steps: 2
+max_steps: 30

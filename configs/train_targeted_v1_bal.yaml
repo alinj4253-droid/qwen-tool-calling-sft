@@ -1,0 +1,36 @@
+# Targeted balanced stage ON TOP OF v1-30k (the strongest checkpoint by
+# aggregate Strict score). v2-continuation arms (p05/p10/bal weak, bal-strong
+# 3ep) all failed to emit multi-block calls and never restored v2's trap
+# abstention; this arm tests whether the healthy v1 prior can be extended
+# with parallel + trap + chat balance. 2 epochs / lr 1e-4 (weak 1-ep lr2e-5
+# was ineffective; 3-ep on v2 showed mild overfit), dual-GPU ga=8.
+run_name: qwen3-4b-targeted-v1-bal
+model_path: Qwen/Qwen3-4B-Base
+base_adapter_path: runs/qwen3-4b-sft-30k-r32/final_adapter
+data_dir: data/targeted_bal
+load_in_4bit: false
+bf16: true
+max_seq_length: 2048
+loss_mode: assistant_only
+special_token_training: none
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 8
+max_steps: -1
+num_train_epochs: 2
+learning_rate: 1.0e-4
+lr_scheduler_type: cosine
+warmup_ratio: 0.05
+weight_decay: 0.0
+gradient_checkpointing: true
+packing: false
+logging_steps: 10
+save_steps: 300
+save_total_limit: 1
+do_eval: false
+seed: 42
+dataloader_num_workers: 2
+optim: adamw_8bit
