@@ -46,10 +46,7 @@ def main() -> None:
 
     cfg = {}
     if args.config:
-        cp = Path(args.config)
-        if not cp.is_absolute():
-            cp = paths.CONFIGS_DIR / cp
-        cfg = load_config(cp)
+        cfg = load_config(args.config)
     output_dir_arg = args.output_dir or cfg.get("output_dir", str(paths.DATA_DIR))
     max_train = args.max_train_samples if args.max_train_samples >= 0 else cfg.get(
         "max_train_samples", 500)
@@ -57,6 +54,9 @@ def main() -> None:
         "max_eval_samples", 100)
     seed = args.seed if args.seed >= 0 else cfg.get("seed", 42)
     want_stream = cfg.get("stream", True) and not args.no_stream
+
+    out_dir = paths.resolve_path(output_dir_arg)
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     wanted = {s.strip() for s in args.sources.split(",") if s.strip()}
     converters = [(n, f) for n, f in CONVERTERS if not wanted or n in wanted]

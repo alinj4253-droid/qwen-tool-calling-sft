@@ -49,3 +49,13 @@ def test_accelerate_config(project_root):
     assert cfg["num_processes"] == 2
     assert cfg["mixed_precision"] == "bf16"
     assert cfg["use_cpu"] is False
+
+
+def test_load_config_path_forms(project_root, monkeypatch):
+    from qwen_tool_sft.config import load_config
+    monkeypatch.chdir(project_root)
+    by_rel = load_config("configs/data_smoke.yaml")
+    by_name = load_config("data_smoke.yaml")
+    by_abs = load_config(str(project_root / "configs" / "data_smoke.yaml"))
+    assert by_rel == by_name == by_abs
+    assert by_rel["stream"] is True

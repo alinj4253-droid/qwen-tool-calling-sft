@@ -19,6 +19,10 @@ export MODELSCOPE_CACHE="$PROJECT_ROOT/.cache/modelscope"
 export TOKENIZERS_PARALLELISM=false
 export PYTHONPATH="$PROJECT_ROOT/src:${PYTHONPATH:-}"
 export PYTHONHASHSEED=42
+# mirror can be slow; don't give up after the 10s default
+export HF_HUB_DOWNLOAD_TIMEOUT=60
+export HF_HUB_ETAG_TIMEOUT=30
+export HF_HUB_REQUEST_TIMEOUT=30
 
 mkdir -p "$HF_HOME/hub" "$HF_HOME/datasets" "$MODELSCOPE_CACHE"
 echo "[env.sh] PROJECT_ROOT=$PROJECT_ROOT  CONDA_DEFAULT_ENV=$CONDA_DEFAULT_ENV  HF_ENDPOINT=$HF_ENDPOINT"

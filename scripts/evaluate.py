@@ -53,7 +53,24 @@ def build_model(cfg: dict):
     return model, tokenizer, device
 
 
-def generate_once(model, tokenizer, device, messages, tools, gen_cfg: dict) -> str:
+def build_eos_ids(model, tokenizer) -> list[int]:
+    """Stop on both <|endoftext|> and the chat-template turn end <|im_end|>."""
+    ids: set[int] = set()
+    gen_eos = getattr(getattr(model, "generation_config", None), "eos_token_id", None)
+    for e in (gen_eos, tokenizer.eos_token_id):
+        if isinstance(e, (list, tuple)):
+            ids.update(int(x) for x in e)
+        elif isinstance(e, int):
+            ids.add(e)
+    for tok in ("<|im_end|>",):
+        tid = tokenizer.convert_tokens_to_ids(tok)
+        if isinstance(tid, int) and tid >= 0:
+            ids.add(tid)
+    return sorted(ids)
+
+
+def generate_once(model, tokenizer, device, messages, tools, gen_cfg: dict,
+                  eos_ids: list[int] | None = None) -> str:
     prompt = tokenizer.apply_chat_template(
         messages,
         tools=tools or None,
@@ -67,6 +84,7 @@ def generate_once(model, tokenizer, device, messages, tools, gen_cfg: dict) -> s
             max_new_tokens=int(gen_cfg.get("max_new_tokens", 1024)),
             do_sample=False,
             pad_token_id=tokenizer.pad_token_id,
+            eos_token_id=eos_ids,
         )
     gen = out[0][inputs["input_ids"].shape[1]:]
     return tokenizer.decode(gen, skip_special_tokens=False)
@@ -78,10 +96,7 @@ def main() -> None:
     ap.add_argument("--set", nargs="*", default=[])
     args = ap.parse_args()
 
-    cfg_path = Path(args.config)
-    if not cfg_path.is_absolute():
-        cfg_path = paths.CONFIGS_DIR / cfg_path
-    cfg = load_config(cfg_path)
+    cfg = load_config(args.config)
     for k, v in parse_kv(args.set).items():
         cfg[k] = v
 
@@ -101,12 +116,14 @@ def main() -> None:
 
     model, tokenizer, device = build_model(cfg)
     gen_cfg = cfg.get("generation", {})
+    eos_ids = build_eos_ids(model, tokenizer)
+    print(f"eos_token_id set: {eos_ids}")
 
     predictions, scores = [], []
     t0 = time.time()
     for i, case in enumerate(cases, 1):
         raw = generate_once(model, tokenizer, device, case["messages"],
-                            case.get("tools"), gen_cfg)
+                            case.get("tools"), gen_cfg, eos_ids=eos_ids)
         parsed = parse_tool_calls(raw)
         sc = score_case(case, parsed)
         if i <= 5 or not sc.overall:

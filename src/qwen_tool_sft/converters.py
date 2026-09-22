@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from typing import Callable
 
 from datasets import load_dataset
@@ -82,8 +83,23 @@ def validate_sample(sample: dict) -> bool:
     return True
 
 
-def _load(repo: str, split: str, streaming: bool, **kwargs):
-    return load_dataset(repo, split=split, streaming=streaming, trust_remote_code=True, **kwargs)
+def _load(repo: str, split: str, streaming: bool, attempts: int = 3, **kwargs):
+    """load_dataset with light retries (HF mirror can be flaky).
+
+    datasets>=3 removed ``trust_remote_code``; pass only supported kwargs.
+    """
+    last_exc = None
+    for i in range(attempts):
+        try:
+            return load_dataset(repo, split=split, streaming=streaming, **kwargs)
+        except TypeError as e:
+            if "trust_remote_code" in str(e):  # pragma: no cover
+                return load_dataset(repo, split=split, streaming=streaming, **kwargs)
+            last_exc = e
+        except Exception as e:  # network / mirror hiccup -> retry
+            last_exc = e
+            time.sleep(3 * (i + 1))
+    raise last_exc
 
 
 def _cap_iter(rows, cap: int | None):

@@ -1,7 +1,7 @@
 # Smoke SFT: Qwen3-4B-Base, LoRA, 500 samples, ~60 steps, dual 4090.
 run_name: qwen3-4b-smoke
 model_path: Qwen/Qwen3-4B-Base
-data_dir: data
+data_dir: data/smoke
 load_in_4bit: false
 bf16: true
 max_seq_length: 2048

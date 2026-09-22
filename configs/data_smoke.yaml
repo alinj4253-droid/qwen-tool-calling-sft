@@ -1,5 +1,5 @@
 # Smoke data: 500 train / 100 eval, streamed from HF mirror.
-output_dir: data
+output_dir: data/smoke
 max_train_samples: 500
 max_eval_samples: 100
 seed: 42

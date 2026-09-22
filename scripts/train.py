@@ -77,8 +77,7 @@ def main() -> None:
     ap.add_argument("--set", nargs="*", default=[], help="key=value overrides (YAML values)")
     args = ap.parse_args()
 
-    cfg = load_config(paths.resolve_path(args.config, base=paths.CONFIGS_DIR)
-                      if not Path(args.config).is_absolute() else args.config)
+    cfg = load_config(args.config)
     for k, v in parse_kv(args.set).items():
         cfg[k] = v
 

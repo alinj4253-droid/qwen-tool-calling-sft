@@ -7,11 +7,21 @@ from typing import Any
 
 import yaml
 
+from qwen_tool_sft import paths
+
 
 def load_config(path: str | Path) -> dict[str, Any]:
     p = Path(path)
     if not p.exists():
-        raise FileNotFoundError(f"config not found: {p}")
+        # accept "configs/foo.yaml" from project root, bare "foo.yaml",
+        # or an absolute path; never blindly prepend configs/ twice.
+        for cand in (paths.PROJECT_ROOT / p, paths.CONFIGS_DIR / p,
+                     paths.CONFIGS_DIR / p.name):
+            if cand.exists():
+                p = cand
+                break
+    if not p.exists():
+        raise FileNotFoundError(f"config not found: {path}")
     with open(p, encoding="utf-8") as f:
         cfg = yaml.safe_load(f) or {}
     if not isinstance(cfg, dict):
