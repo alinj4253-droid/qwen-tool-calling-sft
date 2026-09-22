@@ -1,0 +1,7 @@
+# Full data v2: all 7 sources, canonical (messages, tools) de-duplication.
+# Written to a NEW directory so v1 data/full stays untouched.
+output_dir: data/full_v2
+max_train_samples: 0
+max_eval_samples: 0
+seed: 42
+stream: false

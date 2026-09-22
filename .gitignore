@@ -27,11 +27,25 @@ models_local/
 
 # data (large / generated)
 data/full/
+data/full_v2/
 data/raw/
 data/smoke/
+data/targeted_p05/
+data/targeted_p10/
+
+# scratch / experiments
+tmp/
 
 # setup logs
 setup_logs/
+
+# transient push troubleshooting (may reference credentials workflow)
+setup_scripts/63_try_push.sh
+setup_scripts/64_wait_push.sh
+setup_scripts/65_https_push.sh
+setup_scripts/66_make_deploy_key.sh
+setup_scripts/67_ssh_deploy_push.sh
+setup_scripts/68_resolve_push.sh
 
 # os / editor
 .DS_Store

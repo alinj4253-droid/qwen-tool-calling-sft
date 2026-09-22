@@ -1,0 +1,10 @@
+# v2 SFT-30k adapter on the independently generated extended benchmark.
+run_name: v2-30k-benchmark
+model_label: SFT-v2-30k
+model_path: Qwen/Qwen3-4B-Base
+adapter_path: runs/qwen3-4b-sft-v2-30k-r32/final_adapter
+eval_set: eval/benchmark_extended.jsonl
+output_subdir: runs/eval_v2_benchmark
+bf16: true
+generation:
+  max_new_tokens: 1024

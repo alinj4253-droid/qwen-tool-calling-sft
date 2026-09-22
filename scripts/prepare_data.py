@@ -6,13 +6,12 @@ All outputs are written INSIDE the project directory (default: <root>/data).
 Examples:
   # smoke subset (default)
   python scripts/prepare_data.py --max-train-samples 500 --max-eval-samples 100
-  # full data
-  python scripts/prepare_data.py --max-train-samples 0 --max-eval-samples 0
+  # full data (v2: messages+tools canonical dedup)
+  python scripts/prepare_data.py --config configs/data_full_v2.yaml
 """
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import random
 import sys
@@ -25,11 +24,7 @@ from qwen_tool_sft import paths  # noqa: E402
 from qwen_tool_sft.config import load_config  # noqa: E402
 from qwen_tool_sft.converters import CONVERTERS  # noqa: E402
 from qwen_tool_sft.dataio import validate_sample, write_jsonl  # noqa: E402
-
-
-def msg_hash(messages: list) -> str:
-    content = json.dumps(messages, sort_keys=True, ensure_ascii=False)
-    return hashlib.md5(content.encode()).hexdigest()
+from qwen_tool_sft.dedup import canonical_json, dedup_samples  # noqa: E402
 
 
 def main() -> None:
@@ -91,18 +86,29 @@ def main() -> None:
 
     print(f"\nraw total: {len(all_samples)}")
 
-    seen, deduped = set(), []
+    # v2 dedup: fingerprint covers BOTH canonical messages AND canonical tools,
+    # so "same user query + different tool schemas" samples are NOT collapsed.
+    valid_samples = []
     n_invalid = 0
     for s in all_samples:
         ok, reason = validate_sample(s)
         if not ok:
             n_invalid += 1
             continue
-        h = msg_hash(s["messages"])
-        if h not in seen:
-            seen.add(h)
-            deduped.append(s)
-    print(f"dedup: {len(all_samples)} -> {len(deduped)} (invalid dropped: {n_invalid})")
+        valid_samples.append(s)
+    deduped, n_dup = dedup_samples(valid_samples)
+
+    # diagnostic: how often do identical messages appear with DIFFERENT tools
+    # (the exact case the v1 messages-only hash wrongly collapsed)?
+    by_messages: dict[str, set[str]] = {}
+    for s in deduped:
+        mk = canonical_json(s.get("messages", []))
+        by_messages.setdefault(mk, set()).add(canonical_json(s.get("tools") or []))
+    n_same_msg_diff_tools = sum(1 for v in by_messages.values() if len(v) > 1)
+
+    print(f"dedup: {len(all_samples)} -> {len(deduped)} "
+          f"(invalid dropped: {n_invalid}, duplicates removed: {n_dup})")
+    print(f"same-messages/different-tools groups kept: {n_same_msg_diff_tools}")
 
     rng = random.Random(seed)
     rng.shuffle(deduped)
@@ -121,18 +127,32 @@ def main() -> None:
     write_jsonl(eval_path, eval_)
 
     with_tools = sum(1 for s in deduped if s.get("tools"))
+    with_parallel = sum(
+        1 for s in deduped
+        if any(len(m.get("tool_calls") or []) >= 2 for m in s.get("messages", []))
+    )
+    with_same_name_parallel = sum(
+        1 for s in deduped if _has_same_name_parallel(s))
     stats_doc = {
         "created_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "seed": seed,
+        "dedup": "md5(canonical(messages) || canonical(tools))",
         "streaming": streaming,
         "per_source_cap": per_source_cap,
         "per_source_counts": stats,
         "failures": failures,
+        "raw_total": len(all_samples),
+        "invalid_dropped": n_invalid,
+        "duplicates_removed": n_dup,
+        "same_messages_different_tools_groups": n_same_msg_diff_tools,
         "deduped_total": len(deduped),
         "train": len(train),
         "eval": len(eval_),
         "with_tools": with_tools,
         "with_tools_pct": round(100 * with_tools / len(deduped), 2) if deduped else 0,
+        "with_parallel_calls": with_parallel,
+        "with_parallel_calls_pct": round(100 * with_parallel / len(deduped), 3) if deduped else 0,
+        "with_same_name_parallel": with_same_name_parallel,
     }
     (out_dir / "stats.json").write_text(json.dumps(stats_doc, ensure_ascii=False, indent=2),
                                         encoding="utf-8")
@@ -147,7 +167,18 @@ def main() -> None:
     print(f"  train: {len(train)} -> {train_path}")
     print(f"  eval : {len(eval_)} -> {eval_path}")
     print(f"  with tools: {stats_doc['with_tools_pct']}%")
+    print(f"  parallel calls: {with_parallel} ({stats_doc['with_parallel_calls_pct']}%)")
     print("=" * 60)
+
+
+def _has_same_name_parallel(sample: dict) -> bool:
+    for m in sample.get("messages", []):
+        tcs = m.get("tool_calls") or []
+        if len(tcs) >= 2:
+            names = [(tc.get("function", tc) or {}).get("name") for tc in tcs]
+            if len(set(names)) < len(names):
+                return True
+    return False
 
 
 if __name__ == "__main__":

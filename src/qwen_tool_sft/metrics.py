@@ -9,8 +9,13 @@ Aggregated metrics:
   Argument Exact Match         tool cases whose expected args all match
   Argument Key Accuracy        expected argument keys present (macro avg)
   Valid Tool Call Format Rate  tool cases with >=1 parseable valid call
-  No-Tool Accuracy             no-tool cases answered without any call
-  Overall Exact Match          all of the above satisfied per case
+  Canonical Tool Format Rate   all calls use native <tool_call> wrappers
+  Clean Stop Rate              generation ends on <|im_end|>/eos without prompt leak
+  Strict Protocol Success      tool: correct tool AND args AND canonical format
+                               AND clean stop; no-tool: abstains AND clean stop
+  Tool Abstention Accuracy     no-tool cases answered without any call
+                               (a DECISION metric, not an answer-quality metric)
+  Overall Exact Match          all of selection/arguments/abstention satisfied
   Invalid JSON Rate / Wrong Tool Rate / Missing Argument Rate /
   Extra Argument Rate
 """
@@ -81,6 +86,25 @@ class CaseScore:
     extra_argument: bool = False
     expected_names: list[str] = field(default_factory=list)
     predicted_names: list[str] = field(default_factory=list)
+
+    @property
+    def strict_protocol_success(self) -> bool:
+        """End-to-end protocol correctness (task P0-4).
+
+        Tool cases require correct tool selection, exact arguments, the
+        canonical native wrapper and a clean stop simultaneously.
+        No-tool cases require correct abstention and a clean stop.
+        Computed as a property so it stays consistent after ``clean_stop``
+        is updated from the token-level termination signal.
+        """
+        if self.expected_tool:
+            return bool(
+                self.tool_selection_correct
+                and self.arg_exact_match
+                and self.canonical_format
+                and self.clean_stop
+            )
+        return bool(self.no_tool_correct and self.clean_stop)
 
 
 def _match_calls(expected: list[dict], predicted_calls: list):
@@ -185,12 +209,21 @@ def aggregate(scores: list[CaseScore]) -> dict:
 
     by_category: dict[str, dict] = {}
     for s in scores:
-        d = by_category.setdefault(s.category, {"n": 0, "overall": 0})
+        d = by_category.setdefault(
+            s.category, {"n": 0, "overall": 0, "strict": 0,
+                         "n_tool": 0, "n_parallel_calls": 0})
         d["n"] += 1
         d["overall"] += int(s.overall)
+        d["strict"] += int(s.strict_protocol_success)
+        if s.expected_tool:
+            d["n_tool"] += 1
+        if s.category == "parallel_calls" or s.category.startswith("parallel"):
+            d["n_parallel_calls"] += 1
     for d in by_category.values():
         d["accuracy"] = d["overall"] / d["n"]
+        d["strict_protocol_rate"] = d["strict"] / d["n"]
 
+    abstention = mean([int(s.no_tool_correct or 0) for s in no_tool])
     return {
         "n_cases": len(scores),
         "n_tool_cases": len(tool),
@@ -200,8 +233,15 @@ def aggregate(scores: list[CaseScore]) -> dict:
         "argument_key_accuracy": mean([s.arg_key_accuracy or 0.0 for s in tool]),
         "valid_tool_call_format_rate": mean([int(s.valid_format) for s in tool]),
         "canonical_format_rate": mean([int(s.canonical_format or False) for s in tool]),
-        "no_tool_accuracy": mean([int(s.no_tool_correct or 0) for s in no_tool]),
+        # decision metric only: did the model abstain when it should?
+        "no_tool_accuracy": abstention,
+        "tool_abstention_accuracy": abstention,
         "clean_stop_rate": mean([int(s.clean_stop) for s in scores]),
+        "strict_protocol_success": mean([int(s.strict_protocol_success) for s in scores]),
+        "strict_protocol_success_tool": mean(
+            [int(s.strict_protocol_success) for s in tool]),
+        "strict_protocol_success_no_tool": mean(
+            [int(s.strict_protocol_success) for s in no_tool]),
         "overall_exact_match": mean([int(s.overall) for s in scores]),
         "invalid_json_rate": mean([int(s.invalid_json) for s in tool]),
         "wrong_tool_rate": mean([int(s.wrong_tool) for s in tool]),
@@ -211,29 +251,33 @@ def aggregate(scores: list[CaseScore]) -> dict:
     }
 
 
+# Row order shared by summary.md and the comparison tables.
+METRIC_ROWS = [
+    ("Tool Selection Accuracy", "tool_selection_accuracy"),
+    ("Argument Exact Match", "argument_exact_match"),
+    ("Argument Key Accuracy", "argument_key_accuracy"),
+    ("Valid Tool Call Format Rate", "valid_tool_call_format_rate"),
+    ("Canonical Tool Format Rate", "canonical_format_rate"),
+    ("Tool Abstention Accuracy", "tool_abstention_accuracy"),
+    ("Clean Stop Rate", "clean_stop_rate"),
+    ("Strict Protocol Success", "strict_protocol_success"),
+    ("Overall Exact Match", "overall_exact_match"),
+    ("Invalid JSON Rate", "invalid_json_rate"),
+    ("Wrong Tool Rate", "wrong_tool_rate"),
+    ("Missing Argument Rate", "missing_argument_rate"),
+    ("Extra Argument Rate", "extra_argument_rate"),
+]
+
+
 def metrics_table(metrics_a: dict, name_a: str, metrics_b: dict | None = None,
                   name_b: str = "SFT") -> str:
-    rows = [
-        ("Tool Selection Accuracy", "tool_selection_accuracy"),
-        ("Argument Exact Match", "argument_exact_match"),
-        ("Argument Key Accuracy", "argument_key_accuracy"),
-        ("Valid Tool Call Format Rate", "valid_tool_call_format_rate"),
-        ("Canonical <tool_call> Format Rate", "canonical_format_rate"),
-        ("No-Tool Accuracy", "no_tool_accuracy"),
-        ("Clean Stop Rate", "clean_stop_rate"),
-        ("Overall Exact Match", "overall_exact_match"),
-        ("Invalid JSON Rate", "invalid_json_rate"),
-        ("Wrong Tool Rate", "wrong_tool_rate"),
-        ("Missing Argument Rate", "missing_argument_rate"),
-        ("Extra Argument Rate", "extra_argument_rate"),
-    ]
     if metrics_b is None:
         lines = ["| Metric | %s |" % name_a, "|---|---:|"]
-        for label, key in rows:
+        for label, key in METRIC_ROWS:
             lines.append(f"| {label} | {metrics_a[key]*100:.1f}% |")
         return "\n".join(lines)
     lines = ["| Metric | %s | %s | Delta |" % (name_a, name_b), "|---|---:|---:|---:|"]
-    for label, key in rows:
+    for label, key in METRIC_ROWS:
         a, b = metrics_a[key], metrics_b[key]
         lines.append(f"| {label} | {a*100:.1f}% | {b*100:.1f}% | {(b-a)*100:+.1f}pt |")
     return "\n".join(lines)

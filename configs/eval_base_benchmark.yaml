@@ -1,0 +1,9 @@
+# Base model on the independently generated extended benchmark.
+run_name: base-benchmark
+model_label: Base
+model_path: Qwen/Qwen3-4B-Base
+eval_set: eval/benchmark_extended.jsonl
+output_subdir: runs/eval_base_benchmark
+bf16: true
+generation:
+  max_new_tokens: 1024

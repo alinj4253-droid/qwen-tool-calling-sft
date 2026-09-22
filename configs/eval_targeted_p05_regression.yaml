@@ -1,0 +1,9 @@
+run_name: targeted-p05-regression
+model_label: SFT-v2-targeted-p05
+model_path: Qwen/Qwen3-4B-Base
+adapter_path: runs/qwen3-4b-targeted-p05/final_adapter
+eval_set: eval/tool_calling_eval.jsonl
+output_subdir: runs/eval_targeted_p05_regression
+bf16: true
+generation:
+  max_new_tokens: 1024
