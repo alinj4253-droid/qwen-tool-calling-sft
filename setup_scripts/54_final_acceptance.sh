@@ -52,7 +52,7 @@ echo "===== [8] data artifacts ====="
 wc -l data/smoke/train.jsonl data/smoke/eval.jsonl data/full/train.jsonl data/full/eval.jsonl 2>/dev/null
 
 echo "===== [9] others' processes untouched (ollama) ====="
-ps -u wmy -o pid,cmd --no-headers | grep -E "ollama" | grep -v grep | head -5
+ps -u "$(whoami)" -o pid,cmd --no-headers | grep -E "ollama" | grep -v grep | head -5
 ss -ltn 2>/dev/null | grep 11434 | head -2
 
 echo "ACCEPTANCE_DONE"

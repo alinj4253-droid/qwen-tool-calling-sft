@@ -12,5 +12,5 @@ sleep 2
 cd "$ROOT"
 setsid bash setup_scripts/19_prepare_smoke.sh >/dev/null 2>&1 < /dev/null &
 sleep 5
-ps -u wmy -o pid,cmd --no-headers | grep -E 'prepare_data|19_prepare' | grep -v grep
+ps -u "$(whoami)" -o pid,cmd --no-headers | grep -E 'prepare_data|19_prepare' | grep -v grep
 echo RERUN_LAUNCHED
