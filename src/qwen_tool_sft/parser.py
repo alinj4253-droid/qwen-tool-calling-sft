@@ -60,8 +60,24 @@ def _loose_json_loads(text: str):
     return None
 
 
+def _is_tool_definition(obj: dict) -> bool:
+    """A tool *spec* (name/description/parameters) must not be parsed as a call."""
+    candidates = []
+    if isinstance(obj.get("function"), dict):
+        candidates.append(obj["function"])
+    candidates.append(obj)
+    for c in candidates:
+        if not isinstance(c, dict):
+            continue
+        if "parameters" in c and "arguments" not in c:
+            return True
+    return False
+
+
 def _normalize_call_obj(obj) -> ParsedCall | None:
     if not isinstance(obj, dict):
+        return None
+    if _is_tool_definition(obj):
         return None
     if "function" in obj and isinstance(obj["function"], dict):
         func = obj["function"]
@@ -141,13 +157,25 @@ def parse_tool_calls(text: str) -> ParseResult:
     if result.calls:
         return result
 
-    # 3) bare JSON object mentioning a function name/arguments
-    bare = _loose_json_loads(text)
-    if bare is not None:
-        objs = bare if isinstance(bare, list) else [bare]
-        for o in objs:
-            if isinstance(o, dict) and ("name" in o or "function" in o):
-                c = _normalize_call_obj(o)
-                if c:
-                    result.calls.append(c)
+    # 3) bare JSON at the very START of the answer. Base models often emit the
+    #    call JSON first and then degenerate into repeating the prompt; only the
+    #    leading run of consecutive call JSON values is the answer, and several
+    #    adjacent objects/arrays denote parallel calls.
+    decoder = json.JSONDecoder()
+    pos = 0
+    while True:
+        while pos < len(text) and text[pos] in " \t\r\n":
+            pos += 1
+        if pos >= len(text) or text[pos] not in "{[":
+            break
+        try:
+            value, end = decoder.raw_decode(text, pos)
+        except json.JSONDecodeError:
+            break
+        objs = value if isinstance(value, list) else [value]
+        batch = [c for c in (_normalize_call_obj(o) for o in objs) if c]
+        if not batch or len(batch) != len(objs):
+            break
+        result.calls.extend(batch)
+        pos = end
     return result

@@ -19,7 +19,8 @@ lr_scheduler_type: cosine
 warmup_ratio: 0.03
 weight_decay: 0.0
 gradient_checkpointing: true
-packing: true
+packing: false  # SDPA without flash-attn: packing risks cross-sample attention
+max_eval_samples: 500  # cap training-time loss eval (full eval set has 10k rows)
 logging_steps: 20
 save_steps: 200
 save_total_limit: 2

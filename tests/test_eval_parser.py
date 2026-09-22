@@ -62,3 +62,32 @@ def test_multiple_native_blocks():
             '<tool_call>\n{"name": "get_weather", "arguments": {"city": "上海"}}\n</tool_call>')
     r = parse_tool_calls(text)
     assert r.names == ["get_weather", "get_weather"]
+
+
+def test_bare_parallel_objects_then_prompt_leak():
+    # Base model: two adjacent bare call JSONs, then degenerates into repeating
+    # the prompt; only the leading calls are the answer.
+    text = ('{"name": "get_stock_price", "arguments": {"symbol": "AAPL"}}\n'
+            '{"name": "get_stock_price", "arguments": {"symbol": "MSFT"}}\n'
+            'przezsystem\n{"name": "get_weather", "arguments": {"city": "x"}}')
+    r = parse_tool_calls(text)
+    assert r.names == ["get_stock_price", "get_stock_price"]
+    assert [c.arguments["symbol"] for c in r.calls] == ["AAPL", "MSFT"]
+
+
+def test_echoed_tool_definition_is_not_a_call():
+    # Wrong-tool-trap output that merely echoes a tool *spec* (parameters,
+    # description) must not be counted as an attempted call.
+    text = ('<tools>\n{"type": "function", "function": {"name": "generate_poem", '
+            '"description": "生成诗歌", "parameters": {"type": "object", '
+            '"properties": {"theme": {"type": "string"}}}}}\n</tools>')
+    r = parse_tool_calls(text)
+    assert not r.has_calls
+
+
+def test_bare_call_with_arguments_field_not_definition():
+    # A call whose arguments themselves include a key named "parameters"
+    # is still a call (it carries "arguments").
+    text = '{"name": "f", "arguments": {"parameters": {"k": 1}}}'
+    r = parse_tool_calls(text)
+    assert r.names == ["f"]

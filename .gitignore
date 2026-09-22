@@ -28,6 +28,7 @@ models_local/
 # data (large / generated)
 data/full/
 data/raw/
+data/smoke/
 
 # setup logs
 setup_logs/

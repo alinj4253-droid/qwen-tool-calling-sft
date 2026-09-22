@@ -148,6 +148,10 @@ def main() -> None:
         bias="none",
     )
     model = get_peft_model(model, lora_cfg)
+    if cfg.get("gradient_checkpointing", True):
+        # Required so inputs to frozen layers carry grads into LoRA adapters
+        # when gradient checkpointing is enabled.
+        model.enable_input_require_grads()
     if is_main:
         model.print_trainable_parameters()
 
@@ -193,6 +197,8 @@ def main() -> None:
         max_length=int(cfg.get("max_seq_length", cfg.get("max_length", 2048))),
         max_seq_length=int(cfg.get("max_seq_length", cfg.get("max_length", 2048))),
         packing=bool(cfg.get("packing", True)),
+        # With packing off, group similar-length samples to cut padding waste.
+        group_by_length=bool(cfg.get("group_by_length", not cfg.get("packing", True))),
         dataset_text_field="text",
         ddp_find_unused_parameters=False,
     )
