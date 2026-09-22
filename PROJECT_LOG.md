@@ -366,8 +366,8 @@
 - LICENSE（MIT，仅自有代码）、THIRD_PARTY_NOTICES.md（模型 Apache-2.0、7 数据集、
   BFCL/Gorilla Apache-2.0、上游无 LICENSE 仅本地参考不重发布）；`upstream-src/` 仅保留
   UPSTREAM_VERSION.txt，其余取消跟踪并 gitignore。
-- 隐私：含密码字面量的历史跟踪文件已 `git rm --cached`，推送前重建干净 git 历史并做全历史
-  特征扫描（REDACTED_PASSWORD / 内网 IP / ghp_ / github_pat_ / PRIVATE KEY / sk-）；
+- 隐私：含密码字面量的历史跟踪文件已从跟踪与完整 git 历史中彻底移除，推送前重建干净
+  git 历史并做全历史特征扫描（登录密码 / 内网 IP / 各类令牌前缀 / 私钥块）；
   setup_logs、.cache、data、models_local、adapter safetensors 全部 gitignore；
   setup_logs 下确认无 .gh_token/.gh_deploy_key。
 - 安全边界：全程写入仅在 `/mnt/ssd2/psf/job/qwen-tool-calling-sft`；他人目录、Ollama
