@@ -1,0 +1,5 @@
+{"messages": [{"role": "user", "content": "only user"}]}
+{"messages": [{"role": "wizard", "content": "bad role"}, {"role": "assistant", "content": "hi"}]}
+{"messages": [{"role": "user", "content": "x"}, {"role": "assistant", "content": null, "tool_calls": [{"type": "function", "function": {"name": "", "arguments": {}}}]}]}
+{"messages": [{"role": "user", "content": "x"}, {"role": "assistant", "content": "", "tool_calls": null}]}
+{"messages": [{"role": "user", "content": "x"}, {"role": "assistant", "content": null, "tool_calls": [{"type": "function", "function": {"name": "f", "arguments": "not-json{"}}]}]}
