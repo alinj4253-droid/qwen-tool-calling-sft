@@ -1,0 +1,58 @@
+{
+  "n_cases": 36,
+  "n_tool_cases": 26,
+  "n_no_tool_cases": 10,
+  "tool_selection_accuracy": 0.9230769230769231,
+  "argument_exact_match": 0.9230769230769231,
+  "argument_key_accuracy": 0.9615384615384616,
+  "valid_tool_call_format_rate": 1.0,
+  "canonical_format_rate": 1.0,
+  "no_tool_accuracy": 0.9,
+  "clean_stop_rate": 1.0,
+  "overall_exact_match": 0.9166666666666666,
+  "invalid_json_rate": 0.0,
+  "wrong_tool_rate": 0.07692307692307693,
+  "missing_argument_rate": 0.07692307692307693,
+  "extra_argument_rate": 0.038461538461538464,
+  "by_category": {
+    "single_tool": {
+      "n": 6,
+      "overall": 6,
+      "accuracy": 1.0
+    },
+    "multi_tool_choice": {
+      "n": 6,
+      "overall": 6,
+      "accuracy": 1.0
+    },
+    "argument_filling": {
+      "n": 8,
+      "overall": 8,
+      "accuracy": 1.0
+    },
+    "no_tool": {
+      "n": 6,
+      "overall": 6,
+      "accuracy": 1.0
+    },
+    "wrong_tool_trap": {
+      "n": 4,
+      "overall": 3,
+      "accuracy": 0.75
+    },
+    "multi_argument": {
+      "n": 4,
+      "overall": 4,
+      "accuracy": 1.0
+    },
+    "parallel_calls": {
+      "n": 2,
+      "overall": 0,
+      "accuracy": 0.0
+    }
+  },
+  "run_name": "sft-10k",
+  "model_path": "Qwen/Qwen3-4B-Base",
+  "adapter_path": "runs/qwen3-4b-sft-10k-r16/final_adapter",
+  "eval_seconds": 45.8
+}

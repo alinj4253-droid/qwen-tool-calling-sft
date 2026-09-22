@@ -1,0 +1,171 @@
+{
+  "run_name": "qwen3-4b-sft-30k-r32",
+  "git_head": "8f0f9d00a5769c5f1891301a97014433e74186f7",
+  "config": {
+    "run_name": "qwen3-4b-sft-30k-r32",
+    "model_path": "Qwen/Qwen3-4B-Base",
+    "data_dir": "data/full",
+    "max_train_samples": 30000,
+    "load_in_4bit": false,
+    "bf16": true,
+    "max_seq_length": 2048,
+    "lora_r": 32,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "modules_to_save": [
+      "embed_tokens",
+      "lm_head"
+    ],
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "max_steps": -1,
+    "num_train_epochs": 1,
+    "learning_rate": 0.0001,
+    "lr_scheduler_type": "cosine",
+    "warmup_ratio": 0.03,
+    "weight_decay": 0.0,
+    "gradient_checkpointing": true,
+    "packing": false,
+    "max_eval_samples": 500,
+    "logging_steps": 20,
+    "save_steps": 400,
+    "save_total_limit": 2,
+    "do_eval": true,
+    "eval_strategy": "steps",
+    "eval_steps": 400,
+    "seed": 42,
+    "dataloader_num_workers": 2,
+    "optim": "adamw_8bit"
+  },
+  "model_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/models_local/Qwen/Qwen3-4B-Base",
+  "torch": "2.14.0+cu130",
+  "transformers": "4.57.6",
+  "cuda": "13.0",
+  "world_size": 2,
+  "gpu_names": [
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090"
+  ],
+  "train_samples": 30000,
+  "eval_samples": 500,
+  "global_steps": 1875,
+  "duration_sec": 7633.5,
+  "peak_mem_gb": {
+    "cuda0": 20.42,
+    "cuda1": 0.0
+  },
+  "final_log_history": [
+    {
+      "loss": 0.3345,
+      "grad_norm": 0.5834261775016785,
+      "learning_rate": 2.29470623155732e-06,
+      "entropy": 0.3363390501821414,
+      "num_tokens": 16715962.0,
+      "mean_token_accuracy": 0.897165971621871,
+      "epoch": 0.9066666666666666,
+      "step": 1700
+    },
+    {
+      "loss": 0.4029,
+      "grad_norm": 0.567573606967926,
+      "learning_rate": 1.805799576929107e-06,
+      "entropy": 0.40221887815278023,
+      "num_tokens": 16942658.0,
+      "mean_token_accuracy": 0.8784209888428449,
+      "epoch": 0.9173333333333333,
+      "step": 1720
+    },
+    {
+      "loss": 0.379,
+      "grad_norm": 0.41132110357284546,
+      "learning_rate": 1.3744532859391035e-06,
+      "entropy": 0.38888903027400373,
+      "num_tokens": 17151138.0,
+      "mean_token_accuracy": 0.8844710174947977,
+      "epoch": 0.928,
+      "step": 1740
+    },
+    {
+      "loss": 0.3828,
+      "grad_norm": 0.5771063566207886,
+      "learning_rate": 1.0011825336321446e-06,
+      "entropy": 0.38557360633276405,
+      "num_tokens": 17352566.0,
+      "mean_token_accuracy": 0.8851717833429575,
+      "epoch": 0.9386666666666666,
+      "step": 1760
+    },
+    {
+      "loss": 0.3221,
+      "grad_norm": 0.5362688899040222,
+      "learning_rate": 6.864331329909102e-07,
+      "entropy": 0.32222916251048445,
+      "num_tokens": 17537077.0,
+      "mean_token_accuracy": 0.9015985079109669,
+      "epoch": 0.9493333333333334,
+      "step": 1780
+    },
+    {
+      "loss": 0.2673,
+      "grad_norm": 0.577903151512146,
+      "learning_rate": 4.3058100248269397e-07,
+      "entropy": 0.26905741756781937,
+      "num_tokens": 17685662.0,
+      "mean_token_accuracy": 0.9186213079839944,
+      "epoch": 0.96,
+      "step": 1800
+    },
+    {
+      "loss": 0.3997,
+      "grad_norm": 0.5475409030914307,
+      "learning_rate": 2.339317170841626e-07,
+      "entropy": 0.3980632736580446,
+      "num_tokens": 17913867.0,
+      "mean_token_accuracy": 0.8792225569486618,
+      "epoch": 0.9706666666666667,
+      "step": 1820
+    },
+    {
+      "loss": 0.4118,
+      "grad_norm": 0.5316649675369263,
+      "learning_rate": 9.672014332028356e-08,
+      "entropy": 0.41228195098228754,
+      "num_tokens": 18132063.0,
+      "mean_token_accuracy": 0.8775947213172912,
+      "epoch": 0.9813333333333333,
+      "step": 1840
+    },
+    {
+      "loss": 0.3623,
+      "grad_norm": 0.47198453545570374,
+      "learning_rate": 1.9110158753327113e-08,
+      "entropy": 0.3658011067658663,
+      "num_tokens": 18340435.0,
+      "mean_token_accuracy": 0.8921136189252138,
+      "epoch": 0.992,
+      "step": 1860
+    },
+    {
+      "train_runtime": 7631.2775,
+      "train_samples_per_second": 3.931,
+      "train_steps_per_second": 0.246,
+      "total_flos": 4.521841193679585e+17,
+      "train_loss": 0.390997052637736,
+      "entropy": 0.22965437273184458,
+      "num_tokens": 18433043.0,
+      "mean_token_accuracy": 0.9296149094899495,
+      "epoch": 1.0,
+      "step": 1875
+    }
+  ],
+  "adapter_dir": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/runs/qwen3-4b-sft-30k-r32/final_adapter"
+}
