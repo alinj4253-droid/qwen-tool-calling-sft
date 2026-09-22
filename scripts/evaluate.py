@@ -62,6 +62,21 @@ def load_model(cfg: dict):
     model = AutoModelForCausalLM.from_pretrained(
         model_dir, torch_dtype=dtype, attn_implementation=attn).cuda().eval()
 
+    # Optional first-stage adapter (e.g. targeted-stage adapter is trained on
+    # top of an in-memory merged v2 adapter; it must be stacked in the same
+    # order at eval time).
+    base_adapter = cfg.get("base_adapter_path", "")
+    if isinstance(base_adapter, str):
+        base_adapters = [base_adapter] if base_adapter else []
+    else:
+        base_adapters = list(base_adapter or [])
+    for one_adapter in base_adapters:
+        base_adapter_dir = paths.resolve_path(one_adapter)
+        if not base_adapter_dir.exists():
+            raise FileNotFoundError(f"base adapter not found: {base_adapter_dir}")
+        model = PeftModel.from_pretrained(model, base_adapter_dir).merge_and_unload()
+        print(f"merged base adapter: {base_adapter_dir}")
+
     adapter = cfg.get("adapter_path", "")
     if adapter:
         adapter_dir = paths.resolve_path(adapter)

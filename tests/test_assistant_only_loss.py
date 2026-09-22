@@ -138,7 +138,7 @@ def test_no_tool_case_with_tools_available_masks_schema(tokenizer):
 
 
 def test_collator_right_pads():
-    import torch
+    torch = pytest.importorskip("torch")
     collator = AssistantOnlyCollator(pad_token_id=0)
     batch = collator([
         {"input_ids": [1, 2, 3], "attention_mask": [1, 1, 1],
