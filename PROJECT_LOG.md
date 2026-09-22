@@ -211,3 +211,164 @@
 - Ollama 服务（PID 888428/888431/888432，端口 11434）始终未杀未碰；
   服务器上他人历史 python 进程未动；每次训练前均 nvidia-smi 复核双卡空闲。
 - SSH 密码等凭据未写入任何入库文件 / 日志 / 配置。
+
+---
+
+# 第二阶段（SFT-v2 / Targeted / GRPO smoke）完整逻辑链
+
+> 时间均为服务器 UTC+8；所有数字可在 `runs/*/metrics.json`、`run_meta.json`、
+> `setup_logs/` 与 `runs/contamination_report*/` 中复核。
+
+### 13. P0-1：Loss mask 审计与 assistant-only loss
+
+- 审计结论：v1 用 full-sequence loss，system/user/tool 消息、工具 JSON schema 都参与训练，
+  且 TRL 1.x 的 `assistant_only_loss=True` 与本项目 TrainableTokensWrapper / chunked_nll
+  路径不兼容（直接报错）。
+- 方案：对 Qwen3-4B-Base chat template 做行级 `{%- generation %}…{%- endgeneration %}`
+  注入（`src/qwen_tool_sft/loss_mask.py::patch_chat_template`），8 组场景（纯文本、单调用、
+  三调用并行、多轮、有工具拒答等）渲染文本与原模板**逐字节一致**；
+  `tokenize_assistant_only` 用 `return_assistant_tokens_mask` 取 mask，
+  `AssistantOnlyCollator` 右 padding 并同步 labels。
+- 自研 `ChunkedNLLSFTTrainer`（`scripts/train.py`）：identity-head trick 绕过 DDP 包装、
+  遵守 `num_items_in_batch` 契约、ce_chunk=256、强转 dtype，解决 chunked NLL 的 OOM 与
+  wrapper 不兼容；双卡 DDP 梯度 allreduce 探针证明两卡同 batch 梯度一致。
+- 新增 `tests/test_assistant_only_loss.py`（模板幂等、渲染一致、五类场景逐 token mask、
+  collator 右 padding）。
+
+### 14. P1：selective special-token LoRA（替代 modules_to_save）
+
+- v1 为让协议 token 被训练，用 `modules_to_save=["embed_tokens","lm_head"]` 保存全量副本，
+  可训练参数 810,942,464（16.78%）、adapter 1.69GB；纯 LoRA 冻结时模型在协议位置输出
+  故障汉字“𬜯”（id 122588，范数探针确认特殊 token 行未训练）。
+- PEFT 0.21 验证：`LoraConfig(trainable_token_indices=[151644,151645,151657,151658,
+  151665,151666], modules_to_save=None)`（im_start/im_end、tool_call 开闭、
+  tool_response 开闭）被正确接受，r16 探针可训练参数 33,045,504，无故障 token。
+- 新增 `tests/test_special_token_training.py`（无 peft/torch 时自动 skip）。
+
+### 15. P0-2/P0-3：messages+tools 联合去重、去污染、Strict 指标
+
+- 去重修复：v1 只按 messages 去重，同一对话配不同工具 schema 会漏；v2 改为
+  messages+tools 联合键（`src/qwen_tool_sft/dedup.py`，新增
+  `tests/test_dedup_messages_tools.py`）。重建 v2 池：**124,684 train / 13,854 eval**
+  （v1 为 94,842/10,539；差异主要来自去重修复，v1/v2 对比因此不是纯单变量实验，已在
+  README/FINAL_DECISION 标注）。
+- 去污染：`scripts/check_contamination.py`（exact + 归一化 near-duplicate，阈值 0.8），
+  新增 `tests/test_contamination.py`。36 题、280 题、220 题三套评测集对 v1/v2 两个训练池
+  均为 **0 exact / 0 near**，报告在 `runs/contamination_report/` 与
+  `runs/contamination_report_v1/`。
+- Strict Protocol Success（`src/qwen_tool_sft/metrics.py`，
+  `tests/test_strict_protocol_metric.py`、`tests/test_parallel_eval.py`）：任务正确且
+  调用全部来自原生 `<tool_call>` 块、以 `<|im_end|>`/eos 干净停止；裸 JSON/fenced JSON
+  即使内容正确也不计 Strict。canonical-format、clean-stop、abstention 单列。
+
+### 16. SFT-v2 smoke 与 30k 正式训练
+
+- smoke（500 样本/60 步）：Strict 91.7%（36 题），canonical/clean 100%，assistant-only
+  与 selective token 路径端到端验证通过。
+- **v2-30k（r32/α64，双卡，seed42，与 v1 同超参：1 epoch、有效 batch 16、lr1e-4 cosine、
+  warmup0.03、bf16、adamw_8bit、max2048、packing off）**：1,875 步 / 6,916.9s
+  （115.3 分钟，3.65s/步）；train_loss 0.2576；训练中 eval_loss（500 样本）
+  0.2707→0.2644→0.2601→0.2583（step 400/800/1200/1600）。
+- 可训练参数 66,075,648 / 4,088,543,744 = **1.6161%**；adapter 280,265,746 字节
+  （280.3MB）；峰值显存 rank0 17.675 alloc / 21.081 reserved GB，rank1 17.674/21.236；
+  123,527 个有效样本（1,157 条超 2048 丢弃），72,507,257 总 token、29,790,590 loss token
+  （41.1% 受监督）。
+- reload + greedy 探针：单工具输出标准
+  `<tool_call>{"name":"get_weather","arguments":{"city":"Xiamen"}}</tool_call><|im_end|>`，
+  无 122588、干净停止、闲聊正确拒答；但“两城市天气”并行 prompt 仍只输出一个调用。
+
+### 17. 扩大评测：280 题扩展集 + 220 题 BFCL 外部子集
+
+- 280 题扩展 benchmark（`scripts/build_benchmark_extended.py`，seed 20260922）：
+  single 60、multiple 30、parallel-same 50、parallel-diff 20、multi-arg 30、
+  distractor 30、wrong-tool-trap 26、no-tool 34。
+- BFCL v4 子集（`scripts/build_bfcl_subset.py`，seed 20260923）：raw.githubusercontent
+  不通，经 api.github.com contents API（未认证限流 60/h）下载 5 个静态类别数据与 4 个
+  答案文件（irrelevance 无答案=预期不调工具），抽样 220 题；manifest 明确声明官方宽松
+  答案被 canonicalize，**不与官方榜单可比**。
+- 九组同口径评测（greedy、max_new 1024、同一 harness）Strict 结果：
+
+| 模型 | Regression 36 | Extended 280 | BFCL 220 |
+|---|---:|---:|---:|
+| Base（overall 括号） | 11.1（91.7） | 10.7（67.1） | 1.8（63.2） |
+| v1-30k | 94.4 | 56.1 | 30.0 |
+| v2-30k | 86.1 | 52.1 | 13.2 |
+
+- 关键发现 1（v2 的收益）：Extended single_tool 81.7%→**95.0%**，arg exact 46.4→50.5。
+- 关键发现 2（v2 的回归）：wrong_tool_trap 80.8%→**3.8%**，BFCL irrelevance 拒答
+  90%→**10%**，Regression trap 100%→50%；预测显示 v2 对哲学/闲聊问题硬凑工具
+  （order_food、search_web 等幻觉调用）。数据池侧证据：v2 带调用样本 60.6%（v1 50.4%）、
+  纯闲聊 27.8%（v1 36.6%）；机制推断：assistant-only + 协议 token 行训练增强了调用先验
+  （标注为推断）。
+- 关键发现 3（parallel 稳定失败）：v1/v2 在 Extended 100 个多调用题上**全部只发一个原生
+  块后立即 `<|im_end|>`**；训练池单消息含 ≥2 调用的样本仅 1,060 条（0.85%，同名 108）。
+  模板渲染两个独立块、mask 对两块都监督（单测+渲染探针），排除数据渲染 bug；系统提示仍写
+  “return a json object”单数。Base 能用裸 JSON 完成多调用（BFCL same/diff 任务正确率
+  64%/73.3%，Extended same 36%/diff 35%/multiple 46.7%），说明能力在基座、被 SFT 单块
+  先验压制。
+
+### 18. Targeted parallel SFT（5 个 arm，全部从 SFT adapter 内存 merge 后挂 fresh LoRA r16）
+
+| arm | 起点 | 数据 | 超参 | 步数/时长 | Regression | Extended | BFCL | 并行（Ext/BFCL same） |
+|---|---|---|---|---|---:|---:|---:|---:|
+| p05 | v2 | 5% 并行（4000） | lr2e-5,1ep | 248 / ~21min | 83.3 | 52.1 | 16.8 | 0 / 10% |
+| p10 | v2 | 10% 并行 | lr2e-5,1ep | 248 | 83.3 | 51.4 | 17.7 | 0 / 12% |
+| bal（弱） | v2 | 10% 并行+10% 陷阱+10% 闲聊 | lr2e-5,1ep | 247 / 29min | 86.1 | 51.4 | 16.4 | 0 / 10% |
+| bal-strong | v2 | 同 bal | **lr1e-4,3ep** | 741 / 83min | 80.6 | 50.0 | 18.2 | 0 / 8% |
+| **v1-bal（最终）** | **v1** | 同 bal | lr1e-4,2ep,双卡 | 494 / 31min | **94.4** | **56.4** | **35.0** | 0 / **20%** |
+
+- p05/p10/bal 弱配方 train loss 约 0.47 且偏平，Extended 多块输出 0/100，证明低 lr/单 epoch
+  不足以改写“单块即停”习惯；bal-strong 3ep 强配方仍 0/100 且 Regression 降到 80.6
+  （single 83.3、trap 25），陷阱拒答未恢复（3.8%），强配方在 v2 上轻度过拟合。
+- **v1-bal 是唯一正向 arm**：v1 的陷阱/拒答能力完整保留（Regression trap 100、Extended
+  trap 80.8、abstention 91.7、BFCL abstention 90），BFCL 同名并行 2%→20%、异名 0%→6.7%、
+  multiple 20→22.5；逐条核验 predictions 中确有 2–4 个原生 `<tool_call>` 块
+  （block 计数分布 same: 1块36/2块8/3块3/4块2/8块1）。但 Extended 自然语言并行仍 0/100、
+  pc-01/02 仍 0，**未达“内部 parallel regression ≥90%、其他降 ≤2pp”门槛**；
+  multi_argument 93.3→90.0、distractor 83.3→80.0（各 −3.3pp）已如实记录。
+- 工程：`evaluate.py` 支持 `base_adapter_path` 字符串或列表（多层 adapter 按序 merge，
+  targeted/RL 评测必须复现训练时的堆叠顺序）；新增 20 余个 targeted/bfcl/RL 配置。
+
+### 19. P2：GRPO 最小 smoke（按门槛进入、按证据淘汰）
+
+- 准入核对（任务书第十四节 8 条件）：v2 完成、assistant-only 验证、benchmark 扩充、
+  去污染完成、targeted 已尝试 5 arm、parallel 仍落后、parser/格式/数据 bug 已排除、
+  双卡与磁盘（69GB）允许——全部满足，进入最小 smoke（不直接长 RL）。
+- 实现 `scripts/rl_grpo_smoke.py`（TRL 1.13 GRPOTrainer，无 vLLM、transformers rollout）：
+  80 prompt（32 同名+32 异名并行+16 陷阱/闲聊，prompt ≤2048 token 过滤），G=4、
+  per_device 4、ga4、max_completion 512、lr1e-5、β=0、30 步、fresh LoRA r16；
+  5 个可解释奖励（canonical format / clean stop / tool selection / argument /
+  parallel completion），全部复用项目 parser/metrics，无 LLM judge。
+- 排障记录（如实）：①TRL 硬编码 `tokenizer.eos_token_id` 停 rollout，需把 eos 指向
+  `<|im_end|>`(151645)、pad 用 151643；②completions 以 skip_special_tokens=True 解码，
+  clean-stop 奖励改为按内容语义判定（工具题以 `</tool_call>` 收尾、无后续内容）；
+  ③batch8 OOM（已重试恢复）降为 4/4；④`max_prompt_length`/`dataset_num_proc` 在
+  TRL 1.13 已更名/移除。
+- 结果（978s，16.3 分钟）：起始模型在 SFT 同分布 prompt 上奖励已接近满分
+  （frac_reward_zero_std 常 0.5–1.0，学习信号弱）；评测相对 v1-bal：Regression
+  94.4→94.4、Extended 56.4→**57.1**、BFCL 35.0→**35.9**（各约 2 题差异），
+  Extended/内部并行仍 0，canonical 99.5%（1 例退化）。未达“parallel +5pp、其他降
+  ≤2pp”保留标准 → **RL attempted but not retained**，最终模型继续用 SFT。
+
+### 20. 最终模型与选型
+
+- **最终模型 v1-bal**：Base + `runs/qwen3-4b-sft-30k-r32/final_adapter`
+  + `runs/qwen3-4b-targeted-v1-bal/final_adapter`（加载顺序固化在
+  `configs/eval_targeted_v1_bal_*.yaml`）。Strict 94.4/56.4/35.0，三套均为全部 SFT
+  模型最高；grpo-smoke 噪声级增益不保留；v2 路线因拒答回退不保留为主模型，但其
+  assistant-only loss、selective token、去重/去污染与指标体系作为工程成果保留。
+- 决策文档：`FINAL_DECISION.md`（17+11 问逐项作答）、`RESUME_METRICS.md`（简历口径）。
+
+### 21. 工程收尾
+
+- CI：`.github/workflows/ci.yml` 仅 compileall + pytest（pytest/pyyaml），重依赖用例自动
+  skip；干净 venv 模拟 82 passed/14 skipped/0 error；服务器 `pytest -q` 全绿。
+- LICENSE（MIT，仅自有代码）、THIRD_PARTY_NOTICES.md（模型 Apache-2.0、7 数据集、
+  BFCL/Gorilla Apache-2.0、上游无 LICENSE 仅本地参考不重发布）；`upstream-src/` 仅保留
+  UPSTREAM_VERSION.txt，其余取消跟踪并 gitignore。
+- 隐私：含密码字面量的历史跟踪文件已 `git rm --cached`，推送前重建干净 git 历史并做全历史
+  特征扫描（REDACTED_PASSWORD / 内网 IP / ghp_ / github_pat_ / PRIVATE KEY / sk-）；
+  setup_logs、.cache、data、models_local、adapter safetensors 全部 gitignore；
+  setup_logs 下确认无 .gh_token/.gh_deploy_key。
+- 安全边界：全程写入仅在 `/mnt/ssd2/psf/job/qwen-tool-calling-sft`；他人目录、Ollama
+  （11434）、conda 环境未动；每次训练前 nvidia-smi 预检，不抢卡不 kill。
