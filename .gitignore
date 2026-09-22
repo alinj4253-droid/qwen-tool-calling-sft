@@ -39,6 +39,9 @@ tmp/
 # setup logs
 setup_logs/
 
+# local secret-scan helper contains literal secret patterns (never publish)
+setup_scripts/58_secret_scan.sh
+
 # transient push troubleshooting (may reference credentials workflow)
 setup_scripts/63_try_push.sh
 setup_scripts/64_wait_push.sh

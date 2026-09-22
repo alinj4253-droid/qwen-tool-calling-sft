@@ -1,0 +1,422 @@
+{
+  "model_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/models_local/Qwen/Qwen3-4B-Base",
+  "tie_word_embeddings": true,
+  "vocab_size": 151936,
+  "hidden_size": 2560,
+  "low_norm_threshold": 0.5,
+  "n_added_tokens": 26,
+  "n_low_norm_added_tokens": 25,
+  "targeted_tokens": [
+    {
+      "token": "<|im_start|>",
+      "id": 151644,
+      "embedding_norm": 0.3566,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<|im_end|>",
+      "id": 151645,
+      "embedding_norm": 0.3566,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<tool_call>",
+      "id": 151657,
+      "embedding_norm": 0.3566,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "</tool_call>",
+      "id": 151658,
+      "embedding_norm": 0.3566,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<tool_response>",
+      "id": 151665,
+      "embedding_norm": 0.3566,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "</tool_response>",
+      "id": 151666,
+      "embedding_norm": 0.3566,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<|endoftext|>",
+      "id": 151643,
+      "embedding_norm": 1.2233,
+      "used_by_chat_template": false
+    }
+  ],
+  "low_norm_added_tokens": [
+    {
+      "token": "<|im_start|>",
+      "id": 151644,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<|im_end|>",
+      "id": 151645,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<|object_ref_start|>",
+      "id": 151646,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|object_ref_end|>",
+      "id": 151647,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|box_start|>",
+      "id": 151648,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|box_end|>",
+      "id": 151649,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|quad_start|>",
+      "id": 151650,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|quad_end|>",
+      "id": 151651,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|vision_start|>",
+      "id": 151652,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|vision_end|>",
+      "id": 151653,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|vision_pad|>",
+      "id": 151654,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|image_pad|>",
+      "id": 151655,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|video_pad|>",
+      "id": 151656,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<tool_call>",
+      "id": 151657,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "</tool_call>",
+      "id": 151658,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<|fim_prefix|>",
+      "id": 151659,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|fim_middle|>",
+      "id": 151660,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|fim_suffix|>",
+      "id": 151661,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|fim_pad|>",
+      "id": 151662,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|repo_name|>",
+      "id": 151663,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|file_sep|>",
+      "id": 151664,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<tool_response>",
+      "id": 151665,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "</tool_response>",
+      "id": 151666,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<think>",
+      "id": 151667,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "</think>",
+      "id": 151668,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    }
+  ],
+  "all_added_tokens": [
+    {
+      "token": "<|endoftext|>",
+      "id": 151643,
+      "embedding_norm": 1.2233,
+      "low_norm": false,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|im_start|>",
+      "id": 151644,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<|im_end|>",
+      "id": 151645,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<|object_ref_start|>",
+      "id": 151646,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|object_ref_end|>",
+      "id": 151647,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|box_start|>",
+      "id": 151648,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|box_end|>",
+      "id": 151649,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|quad_start|>",
+      "id": 151650,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|quad_end|>",
+      "id": 151651,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|vision_start|>",
+      "id": 151652,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|vision_end|>",
+      "id": 151653,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|vision_pad|>",
+      "id": 151654,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|image_pad|>",
+      "id": 151655,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|video_pad|>",
+      "id": 151656,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<tool_call>",
+      "id": 151657,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "</tool_call>",
+      "id": 151658,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<|fim_prefix|>",
+      "id": 151659,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|fim_middle|>",
+      "id": 151660,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|fim_suffix|>",
+      "id": 151661,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|fim_pad|>",
+      "id": 151662,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|repo_name|>",
+      "id": 151663,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<|file_sep|>",
+      "id": 151664,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": false
+    },
+    {
+      "token": "<tool_response>",
+      "id": 151665,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "</tool_response>",
+      "id": 151666,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "<think>",
+      "id": 151667,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    },
+    {
+      "token": "</think>",
+      "id": 151668,
+      "embedding_norm": 0.3566,
+      "low_norm": true,
+      "used_by_chat_template": true
+    }
+  ],
+  "selective_training_recommendation": [
+    151644,
+    151645,
+    151657,
+    151658,
+    151665,
+    151666
+  ]
+}

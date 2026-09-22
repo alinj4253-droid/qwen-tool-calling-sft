@@ -1,0 +1,11 @@
+run_name: v2-smoke
+model_label: SFT-v2-smoke
+model_path: Qwen/Qwen3-4B-Base
+adapter_path: runs/qwen3-4b-sft-v2-smoke/final_adapter
+eval_set: eval/tool_calling_eval.jsonl
+output_subdir: runs/eval_sft_v2_smoke
+bf16: true
+loss_mode: assistant_only
+special_token_training: selective
+generation:
+  max_new_tokens: 1024

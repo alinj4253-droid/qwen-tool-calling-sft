@@ -1,0 +1,37 @@
+name: ci
+
+# Lightweight CI: syntax check + unit tests only.
+# Model/tokenizer/PEFT-dependent tests skip themselves when the heavy stack or
+# the local model weights are absent, so no training or download happens here.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install lightweight test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pyyaml
+
+      - name: Compile check
+        run: python -m compileall -q src scripts tests
+
+      - name: Unit tests
+        run: python -m pytest -q

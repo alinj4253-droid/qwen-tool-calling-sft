@@ -153,10 +153,80 @@ def main() -> None:
     import transformers
     from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
     from trl import SFTConfig, SFTTrainer
+    import torch.nn.functional as F
+
+    class ChunkedNLLSFTTrainer(SFTTrainer):
+        """NLL loss in sequence chunks (mathematically identical to nll).
+
+        TRL's default chunked_nll patches ``lm_head`` and is incompatible with
+        PEFT's TrainableTokensWrapper (no attribute proxy); plain nll
+        materializes full [B,T,V] logits plus fp32 CE and OOMs a 24GB card at
+        T=2048. Here hidden states come from the transformer body and the
+        lm_head + cross-entropy are evaluated on ``ce_chunk``-wide slices, so
+        peak logits memory stays ~150MB while gradients are identical.
+        """
+
+        ce_chunk = int(cfg.get("ce_chunk", 256))
+
+        @staticmethod
+        def _causal_lm(model):
+            m = model
+            while hasattr(m, "module"):  # DDP / accelerate wrappers
+                m = m.module
+            # PEFT: PeftModelForCausalLM -> LoraModel -> underlying CausalLM
+            if hasattr(m, "base_model") and hasattr(m.base_model, "model"):
+                return m.base_model.model
+            return m
+
+        def compute_loss(self, model, inputs, return_outputs=False,
+                         num_items_in_batch=None):
+            labels = inputs.pop("labels")
+            causal = self._causal_lm(model)
+            lm_head = causal.lm_head
+            orig_head_forward = lm_head.forward
+            # Run the (DDP-wrapped) model normally so gradient all-reduce hooks
+            # fire, but make the head an identity so the full-vocab logits are
+            # never materialized; the returned "logits" are last hidden states.
+            lm_head.forward = lambda *a, **kw: a[0]
+            try:
+                body_kwargs = {"input_ids": inputs["input_ids"]}
+                if inputs.get("attention_mask") is not None:
+                    body_kwargs["attention_mask"] = inputs["attention_mask"]
+                hidden = model(**body_kwargs).logits
+            finally:
+                lm_head.forward = orig_head_forward
+            head_dtype = next(lm_head.parameters()).dtype
+            shift_h = hidden[:, :-1, :].to(head_dtype).contiguous()
+            shift_labels = labels[:, 1:].contiguous()
+            total, n_valid = None, 0
+            for i in range(0, shift_h.size(1), self.ce_chunk):
+                logits = orig_head_forward(shift_h[:, i:i + self.ce_chunk])
+                target = shift_labels[:, i:i + self.ce_chunk]
+                chunk_loss = F.cross_entropy(
+                    logits.reshape(-1, logits.size(-1)).float(),
+                    target.reshape(-1),
+                    ignore_index=-100, reduction="sum")
+                total = chunk_loss if total is None else total + chunk_loss
+                n_valid += int((target != -100).sum())
+            # transformers>=4.46 gradient-accumulation contract: when
+            # num_items_in_batch is given (total supervised tokens across ALL
+            # accumulation micro-batches), each micro-batch returns token-sum
+            # loss divided by the GLOBAL count; Trainer then skips its own
+            # /accum_steps. Without it, plain per-micro-batch mean is used.
+            if num_items_in_batch is not None:
+                loss = total / max(int(num_items_in_batch), 1)
+            else:
+                loss = total / max(n_valid, 1)
+            return (loss, {"loss": loss}) if return_outputs else loss
 
     local_rank = int(os.environ.get("LOCAL_RANK", 0))
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     is_main = local_rank == 0
+    if torch.cuda.is_available():
+        # accelerate pins CUDA_VISIBLE_DEVICES per rank (one visible device);
+        # unpinned launches see all devices and must select by local_rank.
+        cuda_idx = local_rank if local_rank < torch.cuda.device_count() else 0
+        torch.cuda.set_device(cuda_idx)
 
     run_name = cfg["run_name"]
     run_dir = paths.resolve_path(cfg.get("output_subdir", f"runs/{run_name}"))
@@ -304,8 +374,11 @@ def main() -> None:
         dataloader_num_workers=int(cfg.get("dataloader_num_workers", 2)),
         optim=cfg.get("optim", "adamw_torch"),
         report_to="none",
+        # standard CE: TRL's default chunked_nll patches lm_head and is
+        # incompatible with PEFT's TrainableTokensWrapper (no .bias proxy);
+        # nll is mathematically identical to chunked_nll.
+        loss_type=cfg.get("loss_type", "nll"),
         max_length=max_length,
-        max_seq_length=max_length,
         packing=False,
         group_by_length=bool(cfg.get("group_by_length", loss_mode == "full")),
         remove_unused_columns=False,
@@ -323,7 +396,8 @@ def main() -> None:
     if loss_mode == "assistant_only":
         collator = AssistantOnlyCollator(pad_token_id=tokenizer.pad_token_id)
 
-    trainer = SFTTrainer(
+    trainer_cls = ChunkedNLLSFTTrainer if loss_mode == "assistant_only" else SFTTrainer
+    trainer = trainer_cls(
         model=model,
         args=sft_args,
         train_dataset=train_ds,
@@ -332,18 +406,25 @@ def main() -> None:
         data_collator=collator,
     )
 
+    for di in range(torch.cuda.device_count()):
+        torch.cuda.reset_peak_memory_stats(di)
     t0 = time.time()
     train_result = trainer.train()
     duration = time.time() - t0
 
     # ---- per-rank peak memory (every rank writes, rank0 aggregates) ----
+    per_device = {}
+    for di in range(torch.cuda.device_count()):
+        per_device[f"cuda{di}"] = {
+            "device_name": torch.cuda.get_device_name(di),
+            "peak_mem_allocated_gb": round(torch.cuda.max_memory_allocated(di) / 1e9, 3),
+            "peak_mem_reserved_gb": round(torch.cuda.max_memory_reserved(di) / 1e9, 3),
+        }
     rank_peak = {
         "local_rank": local_rank,
         "world_size": world_size,
-        "device_index_visible": torch.cuda.current_device(),
-        "device_name": torch.cuda.get_device_name(0),
-        "peak_mem_allocated_gb": round(torch.cuda.max_memory_allocated(0) / 1e9, 3),
-        "peak_mem_reserved_gb": round(torch.cuda.max_memory_reserved(0) / 1e9, 3),
+        "device_index_current": torch.cuda.current_device(),
+        "devices": per_device,
     }
     (run_dir / f"peak_mem_rank{local_rank}.json").write_text(
         json.dumps(rank_peak, indent=2), encoding="utf-8")
@@ -367,8 +448,16 @@ def main() -> None:
         for pf in peak_files:
             d = json.loads(Path(pf).read_text())
             r = d["local_rank"]
-            peak_per_rank[f"rank{r}_allocated_gb"] = d["peak_mem_allocated_gb"]
-            peak_per_rank[f"rank{r}_reserved_gb"] = d["peak_mem_reserved_gb"]
+            # a rank may see one or several visible devices; take the max
+            devs = d.get("devices", {})
+            if devs:
+                peak_per_rank[f"rank{r}_allocated_gb"] = max(
+                    v["peak_mem_allocated_gb"] for v in devs.values())
+                peak_per_rank[f"rank{r}_reserved_gb"] = max(
+                    v["peak_mem_reserved_gb"] for v in devs.values())
+            else:  # legacy schema
+                peak_per_rank[f"rank{r}_allocated_gb"] = d.get("peak_mem_allocated_gb", 0.0)
+                peak_per_rank[f"rank{r}_reserved_gb"] = d.get("peak_mem_reserved_gb", 0.0)
 
         adapter_bytes = sum(
             p.stat().st_size for p in adapter_dir.rglob("*") if p.is_file())

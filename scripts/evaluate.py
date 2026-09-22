@@ -12,6 +12,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import sys
 import time
@@ -130,9 +131,9 @@ def evaluate(cfg: dict) -> dict:
             "raw_output": raw,
             "terminated_on_token": terminated_on_token,
             "last_token_id": int(gen_ids[-1].item()) if gen_ids.numel() else None,
-            "parsed_calls": [c.to_dict() for c in parsed.calls],
+            "parsed_calls": [dataclasses.asdict(c) for c in parsed.calls],
+            "parse_sources": list(parsed.sources),
             "invalid_blocks": parsed.invalid_blocks,
-            "parse_errors": parsed.parse_errors,
             "valid_format": sc.valid_format,
             "canonical_format": sc.canonical_format,
             "tool_selection_correct": sc.tool_selection_correct,

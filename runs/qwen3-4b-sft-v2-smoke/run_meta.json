@@ -1,0 +1,160 @@
+{
+  "run_name": "qwen3-4b-sft-v2-smoke",
+  "git_head": "c0a447ebf96f4aa66858809d13b6df629a3be756",
+  "config": {
+    "run_name": "qwen3-4b-sft-v2-smoke",
+    "model_path": "Qwen/Qwen3-4B-Base",
+    "data_dir": "data/smoke",
+    "load_in_4bit": false,
+    "bf16": true,
+    "max_seq_length": 2048,
+    "loss_mode": "assistant_only",
+    "special_token_training": "selective",
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "max_steps": 60,
+    "num_train_epochs": 1,
+    "learning_rate": 0.0001,
+    "lr_scheduler_type": "cosine",
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.0,
+    "gradient_checkpointing": true,
+    "packing": false,
+    "logging_steps": 2,
+    "save_steps": 100,
+    "save_total_limit": 1,
+    "do_eval": false,
+    "seed": 42,
+    "dataloader_num_workers": 2,
+    "optim": "adamw_8bit"
+  },
+  "model_path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/models_local/Qwen/Qwen3-4B-Base",
+  "loss_mode": "assistant_only",
+  "special_token_training": "selective",
+  "trainable_token_indices": [
+    151644,
+    151645,
+    151657,
+    151658,
+    151665,
+    151666
+  ],
+  "torch": "2.14.0+cu130",
+  "transformers": "4.57.6",
+  "cuda": "13.0",
+  "world_size": 2,
+  "gpu_names": [
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090"
+  ],
+  "train_samples": 487,
+  "train_token_stats": {
+    "examples": 487,
+    "invalid": 0,
+    "too_long": 13,
+    "total_tokens": 362155,
+    "loss_tokens": 151477
+  },
+  "eval_samples": 0,
+  "eval_token_stats": {},
+  "global_steps": 60,
+  "duration_sec": 220.8,
+  "peak_mem_per_rank": {
+    "rank0_allocated_gb": 17.116,
+    "rank0_reserved_gb": 17.849,
+    "rank1_allocated_gb": 0.0,
+    "rank1_reserved_gb": 0.0
+  },
+  "trainable_params": 33045504,
+  "all_params": 4055513600,
+  "trainable_pct": 0.8148,
+  "adapter_bytes": 148144746,
+  "adapter_size_mb": 148.1,
+  "final_log_history": [
+    {
+      "loss": 0.3521,
+      "grad_norm": 0.1736036092042923,
+      "learning_rate": 2.0388237366751006e-05,
+      "epoch": 1.4262295081967213,
+      "step": 44
+    },
+    {
+      "loss": 0.4429,
+      "grad_norm": 0.38854658603668213,
+      "learning_rate": 1.6135921418712956e-05,
+      "epoch": 1.4918032786885247,
+      "step": 46
+    },
+    {
+      "loss": 0.463,
+      "grad_norm": 0.17844727635383606,
+      "learning_rate": 1.2294669511155193e-05,
+      "epoch": 1.5573770491803278,
+      "step": 48
+    },
+    {
+      "loss": 0.3669,
+      "grad_norm": 0.1931663453578949,
+      "learning_rate": 8.911109238737747e-06,
+      "epoch": 1.6229508196721312,
+      "step": 50
+    },
+    {
+      "loss": 0.4454,
+      "grad_norm": 0.24056509137153625,
+      "learning_rate": 6.026312439675552e-06,
+      "epoch": 1.6885245901639343,
+      "step": 52
+    },
+    {
+      "loss": 0.3844,
+      "grad_norm": 0.27018946409225464,
+      "learning_rate": 3.675296639259912e-06,
+      "epoch": 1.7540983606557377,
+      "step": 54
+    },
+    {
+      "loss": 0.3572,
+      "grad_norm": 0.19253286719322205,
+      "learning_rate": 1.8865999845374793e-06,
+      "epoch": 1.819672131147541,
+      "step": 56
+    },
+    {
+      "loss": 0.3122,
+      "grad_norm": 0.249813973903656,
+      "learning_rate": 6.819348298638839e-07,
+      "epoch": 1.8852459016393444,
+      "step": 58
+    },
+    {
+      "loss": 0.3556,
+      "grad_norm": 0.16314241290092468,
+      "learning_rate": 7.59241783341913e-08,
+      "epoch": 1.9508196721311475,
+      "step": 60
+    },
+    {
+      "train_runtime": 220.1811,
+      "train_samples_per_second": 4.36,
+      "train_steps_per_second": 0.273,
+      "total_flos": 1.548032277479424e+16,
+      "train_loss": 0.4122817029555639,
+      "epoch": 1.9508196721311475,
+      "step": 60
+    }
+  ],
+  "adapter_dir": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/runs/qwen3-4b-sft-v2-smoke/final_adapter"
+}

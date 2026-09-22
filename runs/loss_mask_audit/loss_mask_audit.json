@@ -1,0 +1,127 @@
+{
+  "scenarios": {
+    "plain_text_no_tools": {
+      "render_identical_to_original": true,
+      "n_tokens": 21,
+      "n_loss_tokens": 11,
+      "n_masked_tokens": 10,
+      "loss_fraction": 0.5238,
+      "loss_text": "<think>\n\n</think>\n\n你好！有什么可以帮你？<|im_end|>",
+      "masked_text": "<|im_start|>user\n你好<|im_end|>\n<|im_start|>assistant\n\n",
+      "truncated": false,
+      "checks": {
+        "render_identical": true,
+        "loss_contains::你好！有什么可以帮你？": true,
+        "masked_contains::你好": true,
+        "has_loss_tokens": true
+      },
+      "checks_all_pass": true
+    },
+    "single_tool_call": {
+      "render_identical_to_original": true,
+      "n_tokens": 207,
+      "n_loss_tokens": 33,
+      "n_masked_tokens": 174,
+      "loss_fraction": 0.1594,
+      "loss_text": "<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"北京\"}}\n</tool_call><|im_end|><think>\n\n</think>\n\n北京今天晴，25度。<|im_end|>",
+      "masked_text": "<|im_start|>system\nYou are a helpful assistant.\n\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"get_weather function\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}, \"required\": [\"city\"]}}}\n</tools>\n\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-json-object>}\n</tool_call><|im_end|>\n<|im_start|>user\n帮我查一下北京天气<|im_end|>\n<|im_start|>assistant\n\n<|im_start|>user\n<tool_response>\n晴 25度\n</tool_response><|im_end|>\n<|im_start|>assistant\n\n",
+      "truncated": false,
+      "checks": {
+        "render_identical": true,
+        "loss_contains::\"name\": \"get_weather\"": true,
+        "loss_contains::\"city\": \"北京\"": true,
+        "loss_contains::北京今天晴": true,
+        "masked_contains::get_weather function": true,
+        "masked_contains::帮我查一下北京天气": true,
+        "masked_contains::晴 25度": true,
+        "masked_contains::You are a helpful assistant": true,
+        "has_loss_tokens": true
+      },
+      "checks_all_pass": true
+    },
+    "parallel_multiple_calls": {
+      "render_identical_to_original": true,
+      "n_tokens": 217,
+      "n_loss_tokens": 64,
+      "n_masked_tokens": 153,
+      "loss_fraction": 0.2949,
+      "loss_text": "<think>\n\n</think>\n\n<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"北京\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"上海\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"广州\"}}\n</tool_call><|im_end|>",
+      "masked_text": "<|im_start|>system\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"get_weather function\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}, \"required\": [\"city\"]}}}\n</tools>\n\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-json-object>}\n</tool_call><|im_end|>\n<|im_start|>user\n同时查北京、上海、广州天气<|im_end|>\n<|im_start|>assistant\n\n",
+      "truncated": false,
+      "checks": {
+        "render_identical": true,
+        "loss_contains::\"city\": \"北京\"": true,
+        "loss_contains::\"city\": \"上海\"": true,
+        "loss_contains::\"city\": \"广州\"": true,
+        "masked_contains::同时查北京、上海、广州天气": true,
+        "has_loss_tokens": true
+      },
+      "checks_all_pass": true
+    },
+    "multiple_different_tools": {
+      "render_identical_to_original": true,
+      "n_tokens": 269,
+      "n_loss_tokens": 53,
+      "n_masked_tokens": 216,
+      "loss_fraction": 0.197,
+      "loss_text": "<think>\n\n</think>\n\n<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"X\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"send_email\", \"arguments\": {\"to\": \"a@b.com\", \"subject\": \"s\"}}\n</tool_call><|im_end|>",
+      "masked_text": "<|im_start|>system\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"get_weather function\", \"parameters\": {\"type\": \"object\", \"properties\": {\"q\": {\"type\": \"string\"}}, \"required\": [\"q\"]}}}\n{\"type\": \"function\", \"function\": {\"name\": \"send_email\", \"description\": \"send_email function\", \"parameters\": {\"type\": \"object\", \"properties\": {\"to\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}, \"required\": [\"to\", \"subject\"]}}}\n</tools>\n\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-json-object>}\n</tool_call><|im_end|>\n<|im_start|>user\n查天气然后发邮件<|im_end|>\n<|im_start|>assistant\n\n",
+      "truncated": false,
+      "checks": {
+        "render_identical": true,
+        "loss_contains::\"name\": \"send_email\"": true,
+        "loss_contains::\"to\": \"a@b.com\"": true,
+        "masked_contains::查天气然后发邮件": true,
+        "masked_contains::send_email function": true,
+        "has_loss_tokens": true
+      },
+      "checks_all_pass": true
+    },
+    "multi_turn_assistant_texts": {
+      "render_identical_to_original": true,
+      "n_tokens": 32,
+      "n_loss_tokens": 10,
+      "n_masked_tokens": 22,
+      "loss_fraction": 0.3125,
+      "loss_text": "a1<|im_end|><think>\n\n</think>\n\na2<|im_end|>",
+      "masked_text": "<|im_start|>user\nq1<|im_end|>\n<|im_start|>assistant\n\n<|im_start|>user\nq2<|im_end|>\n<|im_start|>assistant\n\n",
+      "truncated": false,
+      "checks": {
+        "render_identical": true,
+        "loss_contains::a1": true,
+        "loss_contains::a2": true,
+        "masked_contains::q1": true,
+        "masked_contains::q2": true,
+        "has_loss_tokens": true
+      },
+      "checks_all_pass": true
+    },
+    "no_tool_with_tools_available": {
+      "render_identical_to_original": true,
+      "n_tokens": 157,
+      "n_loss_tokens": 10,
+      "n_masked_tokens": 147,
+      "loss_fraction": 0.0637,
+      "loss_text": "<think>\n\n</think>\n\n我很好，谢谢。<|im_end|>",
+      "masked_text": "<|im_start|>system\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"get_weather function\", \"parameters\": {\"type\": \"object\", \"properties\": {\"q\": {\"type\": \"string\"}}, \"required\": [\"q\"]}}}\n</tools>\n\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-json-object>}\n</tool_call><|im_end|>\n<|im_start|>user\n你好吗<|im_end|>\n<|im_start|>assistant\n\n",
+      "truncated": false,
+      "checks": {
+        "render_identical": true,
+        "loss_contains::我很好，谢谢。": true,
+        "masked_contains::你好吗": true,
+        "masked_contains::get_weather function": true,
+        "has_loss_tokens": true
+      },
+      "checks_all_pass": true
+    }
+  },
+  "hard_checks_passed": true,
+  "real_data": {
+    "path": "/mnt/ssd2/psf/job/qwen-tool-calling-sft/data/full_v2/train.jsonl",
+    "n": 500,
+    "total_tokens": 312718,
+    "loss_tokens": 129475,
+    "supervised_fraction": 0.414,
+    "samples_with_tool_calls": 317
+  }
+}

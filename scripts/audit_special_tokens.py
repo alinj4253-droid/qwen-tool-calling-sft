@@ -32,6 +32,7 @@ def main() -> None:
     args = ap.parse_args()
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
+    from qwen_tool_sft.dataio import normalize_for_template
     cfg = load_config(args.config)
     model_dir = paths.model_path(cfg["model_path"])
     tok = AutoTokenizer.from_pretrained(model_dir)
@@ -52,7 +53,8 @@ def main() -> None:
         "name": "f", "description": "f",
         "parameters": {"type": "object", "properties": {"x": {"type": "integer"}},
                        "required": ["x"]}}}]
-    rendered = tok.apply_chat_template(probe_messages, tools=probe_tools,
+    rendered = tok.apply_chat_template(normalize_for_template(probe_messages),
+                                       tools=probe_tools,
                                        tokenize=False, add_generation_prompt=False)
 
     rows = []
