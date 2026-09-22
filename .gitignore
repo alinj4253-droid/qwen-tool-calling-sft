@@ -10,7 +10,7 @@ __pycache__/
 .venv/
 *.egg-info/
 
-# training artifacts
+# training artifacts (large)
 outputs/
 checkpoints/
 runs/*/checkpoints/
@@ -21,14 +21,16 @@ wandb/
 *.pth
 *.gguf
 
-# data (large / generated)
-data/raw/
-data/full/
-data/models--*/
+# downloaded models and caches stay in project but out of git
+models_local/
 .cache/
 
-# model cache
-models_cache/
+# data (large / generated)
+data/full/
+data/raw/
+
+# setup logs
+setup_logs/
 
 # os / editor
 .DS_Store

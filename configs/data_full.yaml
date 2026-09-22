@@ -1,0 +1,6 @@
+# Full data: all 7 sources (~100k after dedup), 90/10 split.
+output_dir: data/full
+max_train_samples: 0
+max_eval_samples: 0
+seed: 42
+stream: false
