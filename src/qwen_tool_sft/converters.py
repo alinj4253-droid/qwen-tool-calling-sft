@@ -83,11 +83,64 @@ def validate_sample(sample: dict) -> bool:
     return True
 
 
+RAW_EXTS = {".csv": "csv", ".parquet": "parquet",
+            ".json": "json", ".jsonl": "json"}
+
+
+def _load_local(repo: str, split: str):
+    """Load raw files downloaded by scripts/fetch_datasets.py (project-local).
+
+    Returns a Dataset or None when no local mirror exists.
+    """
+    from collections import defaultdict
+
+    from qwen_tool_sft import paths
+
+    root = paths.CACHE_DIR / "datasets_raw" / repo
+    if not root.exists():
+        return None
+    files = [p for p in root.rglob("*") if p.is_file() and p.suffix in RAW_EXTS]
+    if not files:
+        return None
+
+    if repo.endswith("bellfire/openclaw-coder-dataset"):
+        want = "eval.jsonl" if split == "test" else "train.jsonl"
+        files = [f for f in files if f.name == want]
+        return load_dataset("json", data_files=[str(f) for f in files], split="train")
+
+    if repo.endswith("NousResearch/hermes-function-calling-v1"):
+        # The three raw JSON exports have slightly different columns
+        # (e.g. only some carry a ``source`` field); load each separately and
+        # stream the union so datasets does not force a common schema.
+        from datasets import IterableDataset
+
+        json_files = sorted(str(f) for f in files if f.suffix == ".json")
+
+        def _gen():
+            for jf in json_files:
+                part = load_dataset("json", data_files=jf, split="train")
+                for row in part:
+                    yield row
+
+        return IterableDataset.from_generator(_gen)
+
+    by_ext: dict = defaultdict(list)
+    for f in files:
+        by_ext[f.suffix].append(str(f))
+    ext = max(by_ext, key=lambda k: len(by_ext[k]))
+    builder = RAW_EXTS[ext]
+    return load_dataset(builder, data_files=sorted(by_ext[ext]), split="train")
+
+
 def _load(repo: str, split: str, streaming: bool, attempts: int = 3, **kwargs):
-    """load_dataset with light retries (HF mirror can be flaky).
+    """Prefer the project-local raw mirror; otherwise hit the HF hub (retried).
 
     datasets>=3 removed ``trust_remote_code``; pass only supported kwargs.
     """
+    local = _load_local(repo, split)
+    if local is not None:
+        return local
+
     last_exc = None
     for i in range(attempts):
         try:
