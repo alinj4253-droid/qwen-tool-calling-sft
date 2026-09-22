@@ -1,0 +1,31 @@
+# Full-ish SFT stage 1: 10k samples, 1 epoch, dual 4090, bf16 LoRA.
+run_name: qwen3-4b-sft-10k-r16
+model_path: Qwen/Qwen3-4B-Base
+data_dir: data/full
+max_train_samples: 10000
+load_in_4bit: false
+bf16: true
+max_seq_length: 2048
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 8
+max_steps: -1
+num_train_epochs: 1
+learning_rate: 1.0e-4
+lr_scheduler_type: cosine
+warmup_ratio: 0.03
+weight_decay: 0.0
+gradient_checkpointing: true
+packing: true
+logging_steps: 20
+save_steps: 200
+save_total_limit: 2
+do_eval: true
+eval_strategy: steps
+eval_steps: 200
+seed: 42
+dataloader_num_workers: 2
+optim: adamw_torch
