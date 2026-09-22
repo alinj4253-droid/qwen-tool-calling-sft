@@ -1,0 +1,48 @@
+{
+  "name": "BFCL v4 offline reproducible subset",
+  "upstream": "ShishirPatil/gorilla berkeley-function-call-leaderboard/bfcl_eval/data",
+  "upstream_base_url": "https://api.github.com/repos/ShishirPatil/gorilla/contents/berkeley-function-call-leaderboard/bfcl_eval/data",
+  "seed": 20260923,
+  "total_cases": 220,
+  "categories": {
+    "BFCL_v4_simple_python": {
+      "our_category": "single_tool",
+      "pool_rows": 400,
+      "selected": 60,
+      "skipped_no_answer": 0
+    },
+    "BFCL_v4_multiple": {
+      "our_category": "multiple_tools",
+      "pool_rows": 200,
+      "selected": 40,
+      "skipped_no_answer": 0
+    },
+    "BFCL_v4_parallel": {
+      "our_category": "parallel_same_tool",
+      "pool_rows": 200,
+      "selected": 50,
+      "skipped_no_answer": 0
+    },
+    "BFCL_v4_parallel_multiple": {
+      "our_category": "parallel_diff_tool",
+      "pool_rows": 200,
+      "selected": 30,
+      "skipped_no_answer": 0
+    },
+    "BFCL_v4_irrelevance": {
+      "our_category": "no_tool",
+      "pool_rows": 240,
+      "selected": 40,
+      "skipped_no_answer": 0
+    }
+  },
+  "excluded": [
+    "live_* (external accounts)",
+    "multi_turn_* (multi-turn protocol)",
+    "memory",
+    "web_search",
+    "format_sensitivity",
+    "simple_java / simple_javascript (language focus: python)"
+  ],
+  "scoring_note": "Cases are scored with this project's Strict Protocol Success (native <tool_call> wrapper, exact arguments, clean stop). BFCL's official checker is lenient (lists of accepted values, optional arguments may be omitted); answers are canonicalized to the first non-empty accepted value. Numbers are NOT comparable to official BFCL leaderboard scores."
+}
