@@ -9,6 +9,8 @@ lora_r: 16
 lora_alpha: 32
 lora_dropout: 0.05
 target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+# Base model's chat/tool special-token rows are untrained: train embed/head too.
+modules_to_save: [embed_tokens, lm_head]
 per_device_train_batch_size: 1
 gradient_accumulation_steps: 8
 max_steps: 60
@@ -25,4 +27,4 @@ save_total_limit: 1
 do_eval: false
 seed: 42
 dataloader_num_workers: 2
-optim: adamw_torch
+optim: adamw_8bit  # bitsandbytes; keeps embed/head extra params memory-cheap

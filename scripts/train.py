@@ -137,6 +137,14 @@ def main() -> None:
         model = prepare_model_for_kbit_training(model)
     model.config.use_cache = False
 
+    # Qwen3-4B-Base ships UNTRAINED rows for the chat/tool special tokens
+    # (<|im_start|>, <|im_end|>, <tool_call>, ...): their embedding/lm-head
+    # vectors are default-init (norm ~0.36 vs ~1.16 for trained tokens).
+    # LoRA alone cannot move frozen embedding rows, so the model cannot learn
+    # to EMIT the tool-call wrapper tokens. modules_to_save adds full
+    # trainable copies of embed_tokens / lm_head inside the adapter (kept
+    # memory-cheap with the 8-bit AdamW optimizer, see configs).
+    modules_to_save = cfg.get("modules_to_save", ["embed_tokens", "lm_head"])
     lora_cfg = LoraConfig(
         r=int(cfg.get("lora_r", 16)),
         lora_alpha=int(cfg.get("lora_alpha", 32)),
@@ -144,6 +152,7 @@ def main() -> None:
         target_modules=cfg.get("target_modules",
                                ["q_proj", "k_proj", "v_proj", "o_proj",
                                 "gate_proj", "up_proj", "down_proj"]),
+        modules_to_save=modules_to_save,
         task_type="CAUSAL_LM",
         bias="none",
     )
